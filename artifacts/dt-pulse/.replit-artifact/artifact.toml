@@ -1,0 +1,23 @@
+kind = "mobile"
+previewPath = "/"
+title = "DTPulse — KESCO Suite"
+version = "1.0.0"
+id = "artifacts/dt-pulse"
+router = "expo-domain"
+
+[[services]]
+name = "expo"
+ensurePreviewReachable = "/status"
+paths = [ "/" ]
+localPort = 21458
+
+[services.development]
+run = "pnpm --filter @workspace/dt-pulse run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/dt-pulse", "run", "build" ]
+run = [ "pnpm", "--filter", "@workspace/dt-pulse", "run", "serve" ]
+
+[services.env]
+PORT = "21458"
+BASE_PATH = "/"
