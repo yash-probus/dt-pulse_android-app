@@ -45,7 +45,7 @@ export default function LoginScreen() {
 
     // ── Dark header block ──────────────────────────────────────────────
     header: {
-      backgroundColor: '#000000',
+      backgroundColor: colors.background,
       paddingTop: insets.top + (Platform.OS === 'web' ? 67 : 0),
       alignItems: 'center',
     },
