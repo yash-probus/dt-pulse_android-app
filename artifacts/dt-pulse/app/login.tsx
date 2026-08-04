@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
-  ActivityIndicator, Alert, Image, KeyboardAvoidingView, Platform,
-  Pressable, ScrollView, StyleSheet, Text, TextInput, View,
+  ActivityIndicator, Alert, Dimensions, Image, KeyboardAvoidingView,
+  Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -10,9 +10,11 @@ import * as Haptics from 'expo-haptics';
 import { useApp } from '@/context/AppContext';
 import useColors from '@/hooks/useColors';
 
-const KESCO_LOGO = require('@/assets/images/kesco-logo-clean.png');
-const DTPULSE_LOGO = require('@/assets/images/dtpulse-logo-clean.png');
-const PROBUS_LOGO = require('@/assets/images/probus-logo.png');
+const KESCO_BANNER  = require('@/assets/images/kesco-banner.png');
+const DTPULSE_LOGO  = require('@/assets/images/dtpulse-logo-new.png');
+const PROBUS_LOGO   = require('@/assets/images/probus-logo.png');
+
+const SCREEN_W = Dimensions.get('window').width;
 
 export default function LoginScreen() {
   const colors = useColors();
@@ -32,34 +34,59 @@ export default function LoginScreen() {
     router.replace('/(tabs)');
   };
 
+  // KESCO banner: original image is ~1070×714 ≈ 3:2 ratio
+  const bannerH = Math.round(SCREEN_W * (714 / 1070));
+  // DTPulse logo: original ~1024×683 ≈ 3:2, show at comfortable height
+  const dtpulseH = Math.round(SCREEN_W * 0.34);
+
   const s = StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background },
     scroll: { flexGrow: 1 },
-    inner: {
-      paddingHorizontal: 28,
-      paddingTop: insets.top + (Platform.OS === 'web' ? 67 + 24 : 32),
+
+    // ── Dark header block ──────────────────────────────────────────────
+    header: {
+      backgroundColor: '#000000',
+      paddingTop: insets.top + (Platform.OS === 'web' ? 67 : 0),
+      alignItems: 'center',
+    },
+    kescoBanner: {
+      width: SCREEN_W,
+      height: bannerH,
+    },
+    dtpulseWrap: {
+      width: SCREEN_W,
+      height: dtpulseH + 16,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 8,
+    },
+    dtpulseLogo: {
+      width: SCREEN_W * 0.70,
+      height: dtpulseH,
+    },
+
+    // ── Form section ───────────────────────────────────────────────────
+    body: {
+      paddingHorizontal: 24,
+      paddingTop: 28,
       paddingBottom: insets.bottom + (Platform.OS === 'web' ? 24 : 24),
     },
-    // Branding
-    brandSection: { alignItems: 'center', marginBottom: 28 },
-    logoCard: { alignItems: 'center', justifyContent: 'center' },
-    dtpulseCard: { alignItems: 'center', justifyContent: 'center', marginTop: 10 },
-    kescoLogo: { width: 120, height: 80 },
-    dtpulseLogo: { width: 230, height: 70 },
-    // Form card
     card: {
       backgroundColor: colors.card, borderRadius: 16, padding: 20,
       shadowColor: colors.shadow, shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 1, shadowRadius: 16, elevation: 4,
     },
-    label: { fontSize: 11, fontWeight: '600' as const, color: colors.mutedForeground, marginBottom: 6, letterSpacing: 0.6, fontFamily: 'Inter_600SemiBold', textTransform: 'uppercase' as const },
+    label: {
+      fontSize: 11, fontWeight: '600' as const, color: colors.mutedForeground,
+      marginBottom: 6, letterSpacing: 0.6, fontFamily: 'Inter_600SemiBold',
+      textTransform: 'uppercase' as const,
+    },
     inputRow: {
       flexDirection: 'row' as const, alignItems: 'center',
       borderWidth: 1, borderColor: colors.border, borderRadius: 10,
       paddingHorizontal: 14, height: 48, backgroundColor: colors.background, marginBottom: 16,
     },
     input: { flex: 1, fontSize: 15, color: colors.foreground, fontFamily: 'Inter_400Regular' },
-    // Remember me
     rememberRow: { flexDirection: 'row' as const, alignItems: 'center', marginBottom: 20, gap: 10 },
     checkbox: {
       width: 20, height: 20, borderRadius: 5, borderWidth: 1.5,
@@ -68,18 +95,25 @@ export default function LoginScreen() {
       alignItems: 'center', justifyContent: 'center',
     },
     rememberLabel: { fontSize: 14, color: colors.foreground, fontFamily: 'Inter_400Regular' },
-    // Sign In
-    btn: { height: 50, borderRadius: 10, alignItems: 'center' as const, justifyContent: 'center' as const, backgroundColor: colors.primary },
+    btn: {
+      height: 50, borderRadius: 10,
+      alignItems: 'center' as const, justifyContent: 'center' as const,
+      backgroundColor: colors.primary,
+    },
     btnText: { fontSize: 15, fontWeight: '600' as const, fontFamily: 'Inter_600SemiBold', color: '#FFFFFF' },
-    // Footer
-    footer: { alignItems: 'center' as const, marginTop: 28 },
+
+    // ── Footer ─────────────────────────────────────────────────────────
+    protoNote: {
+      fontSize: 11, color: colors.mutedForeground, fontFamily: 'Inter_400Regular',
+      textAlign: 'center' as const, marginTop: 12,
+    },
+    footer: { alignItems: 'center' as const, marginTop: 24 },
     poweredLabel: { fontSize: 11, color: colors.mutedForeground, fontFamily: 'Inter_400Regular', marginBottom: 6 },
     probusLogo: { width: 90, height: 28 },
     linksRow: { flexDirection: 'row' as const, alignItems: 'center', gap: 6, marginTop: 12 },
     linkText: { fontSize: 12, color: colors.accent, fontFamily: 'Inter_500Medium' },
     linkSep: { fontSize: 12, color: colors.mutedForeground, fontFamily: 'Inter_400Regular' },
     version: { fontSize: 11, color: colors.mutedForeground, fontFamily: 'Inter_400Regular', marginTop: 8 },
-    protoNote: { fontSize: 11, color: colors.mutedForeground, fontFamily: 'Inter_400Regular', textAlign: 'center' as const, marginTop: 10 },
   });
 
   return (
@@ -90,18 +124,18 @@ export default function LoginScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <View style={s.inner}>
-            {/* Branding */}
-            <View style={s.brandSection}>
-              <View style={s.logoCard}>
-                <Image source={KESCO_LOGO} style={s.kescoLogo} resizeMode="contain" />
-              </View>
-              <View style={s.dtpulseCard}>
-                <Image source={DTPULSE_LOGO} style={s.dtpulseLogo} resizeMode="contain" />
-              </View>
+          {/* ── Dark branding header ── */}
+          <View style={s.header}>
+            {/* KESCO banner — edge to edge */}
+            <Image source={KESCO_BANNER} style={s.kescoBanner} resizeMode="cover" />
+            {/* DTPulse product logo */}
+            <View style={s.dtpulseWrap}>
+              <Image source={DTPULSE_LOGO} style={s.dtpulseLogo} resizeMode="contain" />
             </View>
+          </View>
 
-            {/* Form */}
+          {/* ── Form ── */}
+          <View style={s.body}>
             <View style={s.card}>
               <Text style={s.label}>Login ID</Text>
               <View style={s.inputRow}>
@@ -146,11 +180,7 @@ export default function LoginScreen() {
                 onPress={handleSignIn}
                 disabled={loading}
               >
-                {loading ? (
-                  <ActivityIndicator color="#FFFFFF" />
-                ) : (
-                  <Text style={s.btnText}>Sign In</Text>
-                )}
+                {loading ? <ActivityIndicator color="#FFFFFF" /> : <Text style={s.btnText}>Sign In</Text>}
               </Pressable>
             </View>
 
