@@ -10,8 +10,8 @@ import * as Haptics from 'expo-haptics';
 import { useApp } from '@/context/AppContext';
 import useColors from '@/hooks/useColors';
 
-const KESCO_LOGO = require('@/assets/images/kesco-logo.png');
-const DTPULSE_LOGO = require('@/assets/images/dtpulse-logo.png');
+const KESCO_LOGO = require('@/assets/images/kesco-logo-clean.png');
+const DTPULSE_LOGO = require('@/assets/images/dtpulse-logo-clean.png');
 const PROBUS_LOGO = require('@/assets/images/probus-logo.png');
 
 export default function LoginScreen() {
@@ -42,8 +42,10 @@ export default function LoginScreen() {
     },
     // Branding
     brandSection: { alignItems: 'center', marginBottom: 28 },
-    kescoLogo: { width: 110, height: 82, borderRadius: 8 },
-    dtpulseLogo: { width: 220, height: 72, borderRadius: 8, backgroundColor: '#0B2545', marginTop: 14 },
+    logoCard: { alignItems: 'center', justifyContent: 'center' },
+    dtpulseCard: { alignItems: 'center', justifyContent: 'center', marginTop: 10 },
+    kescoLogo: { width: 120, height: 80 },
+    dtpulseLogo: { width: 230, height: 70 },
     // Form card
     card: {
       backgroundColor: colors.card, borderRadius: 16, padding: 20,
@@ -91,8 +93,12 @@ export default function LoginScreen() {
           <View style={s.inner}>
             {/* Branding */}
             <View style={s.brandSection}>
-              <Image source={KESCO_LOGO} style={s.kescoLogo} resizeMode="contain" />
-              <Image source={DTPULSE_LOGO} style={s.dtpulseLogo} resizeMode="contain" />
+              <View style={s.logoCard}>
+                <Image source={KESCO_LOGO} style={s.kescoLogo} resizeMode="contain" />
+              </View>
+              <View style={s.dtpulseCard}>
+                <Image source={DTPULSE_LOGO} style={s.dtpulseLogo} resizeMode="contain" />
+              </View>
             </View>
 
             {/* Form */}
