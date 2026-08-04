@@ -1,0 +1,369 @@
+# Mobile Application Updates (Replit)
+
+Implement the following UI and navigation improvements across the mobile application. These changes are focused on improving branding, navigation, usability, and consistency while keeping the existing functionality intact.
+
+---
+
+# 1. Login Screen Redesign
+
+Redesign the login screen with the following structure from top to bottom.
+
+## Branding Section
+
+At the very top, display the **KESCO logo**.
+
+**Reference:** The image that I will upload should be treated as the **"KESCO Logo"**.
+
+Maintain its original proportions and center-align it.
+
+Below the KESCO logo, display the **Application Logo**.
+
+**Reference:** The image that I will upload should be treated as the **"Application Logo"**.
+
+This logo represents the branding of the mobile application (DTPulse).
+
+Provide proper spacing between both logos so they appear as one unified branding section.
+
+---
+
+## Login Form
+
+Below the branding section display:
+
+### Login ID
+
+- Input field
+- Placeholder:
+  ```
+  Login ID
+  ```
+
+---
+
+### Password
+
+- Password input field
+- Placeholder:
+  ```
+  Password
+  ```
+- Eye icon on the right to show/hide password
+- Standard password visibility toggle behavior
+
+---
+
+### Remember Me
+
+Below the password field add:
+
+☐ Remember Me
+
+When checked:
+
+- Remember Login ID
+- Keep user logged in according to existing authentication logic
+
+---
+
+### Sign In Button
+
+Single Primary CTA
+
+```
+Sign In
+```
+
+Full width button.
+
+---
+
+## Remove Google Login
+
+Completely remove:
+
+- Continue with Google button
+- Google Sign-In integration
+- Any UI spacing reserved for Google authentication
+
+---
+
+# 2. Footer Design
+
+Redesign the footer to match the existing branding.
+
+Display the following from top to bottom:
+
+---
+
+### Powered by
+
+```
+Powered by
+```
+
+Below this, display the **Probus Logo**.
+
+**Reference:** I will upload the Probus logo separately.
+
+Use the uploaded image as the Probus logo.
+
+---
+
+Below the logo display:
+
+```
+Legal | Contact & Support
+```
+
+Both should behave as clickable text links.
+
+---
+
+Finally display:
+
+```
+Version 1.1
+```
+
+Center aligned.
+
+The footer should remain fixed near the bottom while respecting different screen heights.
+
+---
+
+# 3. DT Analyzer → Active Alerts Navigation
+
+Current behavior:
+
+Clicking an alert does not take the user directly to the affected DT.
+
+New behavior:
+
+Whenever a user taps any card inside:
+
+```
+DT Analyzer
+→ Dashboard
+→ Active Alerts
+```
+
+navigate directly to that specific DT.
+
+Navigation:
+
+```
+Dashboard
+
+↓
+
+Active Alert
+
+↓
+
+DT List
+
+↓
+
+Open corresponding DT Info
+```
+
+Automatically open the DT Info screen for that exact DT that generated the alert.
+
+No additional search should be required.
+
+---
+
+# 4. DT Info → Alerts History
+
+Inside the DT Info screen:
+
+Locate the Oil Level graph.
+
+Immediately below this graph add a new section:
+
+# Alerts History
+
+Display a table containing alert history only for:
+
+- LUG Temperature
+- Oil Temperature
+- Oil Level
+
+Suggested columns:
+
+- Date
+- Time
+- Sensor
+- Alert Type
+- Severity
+- Status
+
+Newest alerts should appear first.
+
+---
+
+## Alert Deep Linking
+
+When a user clicks an alert from the Dashboard Active Alerts section,
+
+the Alerts History table should automatically highlight or scroll to that relevant alert entry whenever applicable.
+
+This provides continuity between Dashboard and DT Info.
+
+---
+
+# 5. DT List Filters
+
+Inside:
+
+```
+DT Analyzer
+
+↓
+
+DT List
+
+↓
+
+Filter
+```
+
+Improve the hierarchy selection.
+
+Instead of generic filters, allow users to filter in this sequence:
+
+1. Circle
+2. Division
+3. Sub-Division
+
+Behaviour:
+
+Selecting Circle
+
+↓
+
+loads available Divisions
+
+↓
+
+Selecting Division
+
+↓
+
+loads available Sub-Divisions
+
+↓
+
+Displays filtered DTs.
+
+Maintain cascading hierarchy behavior.
+
+---
+
+# 6. DT Analyzer Dashboard Layout
+
+Inside:
+
+```
+DT Analyzer
+
+↓
+
+Dashboard
+```
+
+Introduce a toggle control.
+
+```
+○ DT Overview
+
+○ Sensor Overview
+```
+
+---
+
+## DT Overview
+
+When selected display:
+
+- DT Overview KPI Cards
+- DT Rating Status Graph
+
+Only DT-related widgets should be visible.
+
+---
+
+## Sensor Overview
+
+When selected display:
+
+- Sensor Overview KPI Cards
+- Sensor Status by Type Graph
+
+Only Sensor-related widgets should be visible.
+
+The dashboard should smoothly switch between these two modes without navigating to another page.
+
+---
+
+# 7. Remove Utility Header
+
+Currently, above the hierarchy filter there is a section displaying:
+
+```
+Utility
+
+KESCO, Kanpur
+```
+
+Remove this entire section.
+
+Specifically remove:
+
+- Utility label
+- KESCO
+- Kanpur
+- Associated container/card
+- Empty spacing created by this section
+
+The hierarchy selection should move upward and occupy this space.
+
+---
+
+# 8. UI Consistency
+
+Maintain consistent styling across the application:
+
+- Existing color palette
+- Rounded cards
+- Proper spacing
+- Existing typography
+- Responsive layouts
+- Smooth animations where already used
+
+The new login screen, dashboard toggle, hierarchy filters, and alert navigation should feel like a native extension of the existing application without changing the core workflows.
+
+---
+
+# Expected Outcome
+
+After implementation:
+
+- Login screen displays the uploaded **KESCO Logo** followed by the uploaded **Application Logo**.
+- Login form contains:
+  - Login ID
+  - Password with visibility toggle
+  - Remember Me checkbox
+  - Sign In button
+- Google Sign-In is completely removed.
+- Footer displays:
+  - "Powered by"
+  - Uploaded Probus logo
+  - "Legal | Contact & Support"
+  - "Version 1.1"
+- Clicking any Active Alert on the DT Analyzer Dashboard opens the corresponding DT Info screen directly.
+- DT Info includes a new **Alerts History** table below the Oil Level graph showing alerts for LUG Temperature, Oil Temperature, and Oil Level.
+- DT List filters support hierarchical selection in the order: **Circle → Division → Sub-Division**.
+- DT Analyzer Dashboard includes a toggle between **DT Overview** and **Sensor Overview**, switching the KPI cards and graphs accordingly.
+- The **Utility – KESCO, Kanpur** section above the hierarchy filter is removed, and the hierarchy filter shifts upward to use the available space.
+```

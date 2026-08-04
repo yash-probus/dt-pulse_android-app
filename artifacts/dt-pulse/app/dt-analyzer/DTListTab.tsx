@@ -12,14 +12,9 @@ interface Filters {
   division: string;
   subDivision: string;
   status: string;
-  oilLevel: string;
-  oilTemp: string;
-  lugAlerts: string;
 }
 
-const EMPTY_FILTERS: Filters = {
-  circle: '', division: '', subDivision: '', status: '', oilLevel: '', oilTemp: '', lugAlerts: '',
-};
+const EMPTY_FILTERS: Filters = { circle: '', division: '', subDivision: '', status: '' };
 
 function LugChip({ label, value, alert, colors }: { label: string; value: string; alert: boolean; colors: any }) {
   return (
@@ -41,7 +36,6 @@ function DTCard({ dt, expanded, onToggle, colors }: { dt: DTListItem; expanded: 
         </View>
         <Text style={{ fontSize: 12, color: colors.mutedForeground, fontFamily: 'Inter_400Regular' }}>{dt.circle} · {dt.division} · {dt.subDivision}</Text>
         <Text style={{ fontSize: 12, color: colors.mutedForeground, fontFamily: 'Inter_400Regular' }}>{dt.substation} · {dt.kva} · {dt.dtType}</Text>
-
         <View style={{ flexDirection: 'row', gap: 6, marginTop: 10 }}>
           <LugChip label="R" value={dt.lugR} alert={dt.lugRAlert} colors={colors} />
           <LugChip label="Y" value={dt.lugY} alert={false} colors={colors} />
@@ -111,7 +105,15 @@ export default function DTListTab({ paddingTop }: { paddingTop: number }) {
   const [filterOpen, setFilterOpen] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
 
-  const activeFilterCount = Object.values(filters).filter((v) => v && v !== '').length;
+  const activeFilterCount = Object.values(filters).filter((v) => v !== '').length;
+
+  // Cascading options
+  const availableDivisions = pendingFilters.circle
+    ? (HIERARCHY.divisions[pendingFilters.circle] ?? [])
+    : [];
+  const availableSubDivisions = pendingFilters.division
+    ? (HIERARCHY.subDivisions[pendingFilters.division] ?? [])
+    : [];
 
   const filtered = DT_LIST.filter((dt) => {
     const q = search.toLowerCase();
@@ -135,18 +137,28 @@ export default function DTListTab({ paddingTop }: { paddingTop: number }) {
     filterBtn: { width: 42, height: 42, borderRadius: 10, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
     countText: { fontSize: 12, color: colors.mutedForeground, fontFamily: 'Inter_400Regular', marginBottom: 10 },
     modal: { flex: 1, justifyContent: 'flex-end', backgroundColor: colors.overlay },
-    sheet: { backgroundColor: colors.card, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, paddingBottom: insets.bottom + 24, maxHeight: '85%' },
+    sheet: { backgroundColor: colors.card, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, paddingBottom: insets.bottom + 24, maxHeight: '90%' },
     sheetTitle: { fontSize: 18, fontWeight: '700' as const, color: colors.foreground, fontFamily: 'Inter_700Bold', marginBottom: 16 },
     sheetLabel: { fontSize: 11, fontWeight: '600' as const, color: colors.mutedForeground, fontFamily: 'Inter_600SemiBold', textTransform: 'uppercase' as const, marginBottom: 6 },
-    selectBox: { borderWidth: 1, borderColor: colors.border, borderRadius: 8, height: 40, justifyContent: 'center', paddingHorizontal: 12, marginBottom: 12 },
-    selectText: { fontSize: 14, color: colors.foreground, fontFamily: 'Inter_400Regular' },
     sheetBtnRow: { flexDirection: 'row', gap: 10, marginTop: 8 },
     sheetBtn: { flex: 1, height: 46, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+    // Cascade selector
+    cascadeStep: { marginBottom: 14 },
+    cascadeHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
+    stepCircle: { width: 20, height: 20, borderRadius: 10, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', marginRight: 8 },
+    stepNum: { fontSize: 11, fontWeight: '700' as const, color: '#FFFFFF', fontFamily: 'Inter_700Bold' },
+    optionPill: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 100, borderWidth: 1, marginRight: 6, marginBottom: 6 },
+    optionText: { fontSize: 13, fontFamily: 'Inter_500Medium' },
   });
 
-  const segOptions: Record<string, string[]> = {
-    status: ['', 'Normal', 'Attention', 'Outage'],
-  };
+  const setPendingCircle = (val: string) =>
+    setPendingFilters((f) => ({ ...f, circle: val, division: '', subDivision: '' }));
+  const setPendingDivision = (val: string) =>
+    setPendingFilters((f) => ({ ...f, division: val, subDivision: '' }));
+  const setPendingSubDiv = (val: string) =>
+    setPendingFilters((f) => ({ ...f, subDivision: val }));
+  const setPendingStatus = (val: string) =>
+    setPendingFilters((f) => ({ ...f, status: val }));
 
   return (
     <>
@@ -208,23 +220,113 @@ export default function DTListTab({ paddingTop }: { paddingTop: number }) {
           <Pressable style={s.sheet} onPress={() => {}}>
             <Text style={s.sheetTitle}>Filter DTs</Text>
             <ScrollView showsVerticalScrollIndicator={false}>
-              <Text style={s.sheetLabel}>Circle</Text>
-              {['', ...HIERARCHY.circles].map((opt) => (
-                <Pressable key={opt || 'all'} style={[s.selectBox, pendingFilters.circle === opt && { borderColor: colors.accent, backgroundColor: `${colors.accent}10` }]} onPress={() => setPendingFilters((f) => ({ ...f, circle: opt, division: '', subDivision: '' }))}>
-                  <Text style={s.selectText}>{opt || 'All'}</Text>
-                </Pressable>
-              ))}
-              <Text style={s.sheetLabel}>DT Status</Text>
-              <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap', marginBottom: 16 }}>
-                {['', 'Normal', 'Attention', 'Outage'].map((opt) => (
-                  <Pressable key={opt || 'all'} style={{ paddingHorizontal: 14, paddingVertical: 8, borderRadius: 100, borderWidth: 1, borderColor: pendingFilters.status === opt ? colors.accent : colors.border, backgroundColor: pendingFilters.status === opt ? `${colors.accent}15` : colors.card }} onPress={() => setPendingFilters((f) => ({ ...f, status: opt }))}>
-                    <Text style={{ fontSize: 13, color: pendingFilters.status === opt ? colors.accent : colors.foreground, fontFamily: 'Inter_500Medium' }}>{opt || 'All'}</Text>
-                  </Pressable>
-                ))}
+
+              {/* Step 1: Circle */}
+              <View style={s.cascadeStep}>
+                <View style={s.cascadeHeader}>
+                  <View style={s.stepCircle}><Text style={s.stepNum}>1</Text></View>
+                  <Text style={s.sheetLabel}>Circle</Text>
+                </View>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+                  {['', ...HIERARCHY.circles].map((opt) => {
+                    const active = pendingFilters.circle === opt;
+                    return (
+                      <Pressable
+                        key={opt || '__all__'}
+                        style={[s.optionPill, { borderColor: active ? colors.accent : colors.border, backgroundColor: active ? `${colors.accent}15` : colors.card }]}
+                        onPress={() => setPendingCircle(opt)}
+                      >
+                        <Text style={[s.optionText, { color: active ? colors.accent : colors.foreground }]}>{opt || 'All'}</Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
               </View>
+
+              {/* Step 2: Division — enabled only after Circle */}
+              <View style={[s.cascadeStep, !pendingFilters.circle && { opacity: 0.4 }]}>
+                <View style={s.cascadeHeader}>
+                  <View style={[s.stepCircle, !pendingFilters.circle && { backgroundColor: colors.mutedForeground }]}>
+                    <Text style={s.stepNum}>2</Text>
+                  </View>
+                  <Text style={s.sheetLabel}>Division</Text>
+                </View>
+                {pendingFilters.circle ? (
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+                    {['', ...availableDivisions].map((opt) => {
+                      const active = pendingFilters.division === opt;
+                      return (
+                        <Pressable
+                          key={opt || '__all__'}
+                          style={[s.optionPill, { borderColor: active ? colors.accent : colors.border, backgroundColor: active ? `${colors.accent}15` : colors.card }]}
+                          onPress={() => setPendingDivision(opt)}
+                        >
+                          <Text style={[s.optionText, { color: active ? colors.accent : colors.foreground }]}>{opt || 'All'}</Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                ) : (
+                  <Text style={{ fontSize: 13, color: colors.mutedForeground, fontFamily: 'Inter_400Regular' }}>Select a Circle first</Text>
+                )}
+              </View>
+
+              {/* Step 3: Sub-Division — enabled only after Division */}
+              <View style={[s.cascadeStep, !pendingFilters.division && { opacity: 0.4 }]}>
+                <View style={s.cascadeHeader}>
+                  <View style={[s.stepCircle, !pendingFilters.division && { backgroundColor: colors.mutedForeground }]}>
+                    <Text style={s.stepNum}>3</Text>
+                  </View>
+                  <Text style={s.sheetLabel}>Sub-Division</Text>
+                </View>
+                {pendingFilters.division ? (
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+                    {['', ...availableSubDivisions].map((opt) => {
+                      const active = pendingFilters.subDivision === opt;
+                      return (
+                        <Pressable
+                          key={opt || '__all__'}
+                          style={[s.optionPill, { borderColor: active ? colors.accent : colors.border, backgroundColor: active ? `${colors.accent}15` : colors.card }]}
+                          onPress={() => setPendingSubDiv(opt)}
+                        >
+                          <Text style={[s.optionText, { color: active ? colors.accent : colors.foreground }]}>{opt || 'All'}</Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                ) : (
+                  <Text style={{ fontSize: 13, color: colors.mutedForeground, fontFamily: 'Inter_400Regular' }}>Select a Division first</Text>
+                )}
+              </View>
+
+              {/* DT Status */}
+              <View style={s.cascadeStep}>
+                <View style={s.cascadeHeader}>
+                  <View style={[s.stepCircle, { backgroundColor: colors.mutedForeground }]}>
+                    <Text style={s.stepNum}>4</Text>
+                  </View>
+                  <Text style={s.sheetLabel}>DT Status</Text>
+                </View>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+                  {['', 'Normal', 'Attention', 'Outage'].map((opt) => {
+                    const active = pendingFilters.status === opt;
+                    return (
+                      <Pressable
+                        key={opt || '__all__'}
+                        style={[s.optionPill, { borderColor: active ? colors.accent : colors.border, backgroundColor: active ? `${colors.accent}15` : colors.card }]}
+                        onPress={() => setPendingStatus(opt)}
+                      >
+                        <Text style={[s.optionText, { color: active ? colors.accent : colors.foreground }]}>{opt || 'All'}</Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </View>
+
             </ScrollView>
+
             <View style={s.sheetBtnRow}>
-              <Pressable style={[s.sheetBtn, { backgroundColor: colors.muted }]} onPress={() => { setPendingFilters(EMPTY_FILTERS); }}>
+              <Pressable style={[s.sheetBtn, { backgroundColor: colors.muted }]} onPress={() => setPendingFilters(EMPTY_FILTERS)}>
                 <Text style={{ color: colors.foreground, fontFamily: 'Inter_600SemiBold' }}>Clear Filters</Text>
               </Pressable>
               <Pressable style={[s.sheetBtn, { backgroundColor: colors.primary }]} onPress={() => { setFilters(pendingFilters); setFilterOpen(false); }}>

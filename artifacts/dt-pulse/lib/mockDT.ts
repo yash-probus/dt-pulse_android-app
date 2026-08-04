@@ -185,7 +185,54 @@ export const DT_ALARMS: DtAlarm[] = [
   { id: 'AL7', dtCode: 'DT-3100', subDivision: 'Civil Lines', type: 'critical', title: 'Sensor Data Unavailable', description: 'Lug temperature sensor not responding', timestamp: '10-May-2026 09:05', active: true, assignedToMe: false },
 ];
 
-// Generate sinusoidal 24-hour chart data
+// ─── Alerts History ──────────────────────────────────────────────────────────
+
+export type AlertHistorySensor = 'LUG Temperature' | 'Oil Temperature' | 'Oil Level';
+export type AlertHistorySeverity = 'Critical' | 'Warning';
+export type AlertHistoryStatus = 'Active' | 'Resolved' | 'Acknowledged';
+
+export interface AlertHistory {
+  id: string;
+  date: string;
+  time: string;
+  sensor: AlertHistorySensor;
+  alertType: string;
+  severity: AlertHistorySeverity;
+  status: AlertHistoryStatus;
+}
+
+// Alert history per DT — newest first. Only LUG Temp, Oil Temp, Oil Level sensors.
+export const DT_ALERT_HISTORY: Record<string, AlertHistory[]> = {
+  'DT-3421': [
+    { id: 'H1', date: '10-May-2026', time: '09:00:00', sensor: 'LUG Temperature', alertType: 'High Lug Temp', severity: 'Critical', status: 'Active' },
+    { id: 'H2', date: '10-May-2026', time: '06:45:00', sensor: 'Oil Level', alertType: 'Low Oil Level', severity: 'Warning', status: 'Active' },
+    { id: 'H3', date: '09-May-2026', time: '22:10:00', sensor: 'LUG Temperature', alertType: 'High Lug Temp', severity: 'Critical', status: 'Acknowledged' },
+    { id: 'H4', date: '09-May-2026', time: '14:30:00', sensor: 'Oil Temperature', alertType: 'High Oil Temp', severity: 'Warning', status: 'Resolved' },
+    { id: 'H5', date: '08-May-2026', time: '18:55:00', sensor: 'Oil Level', alertType: 'Low Oil Level', severity: 'Warning', status: 'Resolved' },
+    { id: 'H6', date: '07-May-2026', time: '11:20:00', sensor: 'LUG Temperature', alertType: 'High Lug Temp', severity: 'Critical', status: 'Resolved' },
+    { id: 'H7', date: '06-May-2026', time: '08:40:00', sensor: 'Oil Temperature', alertType: 'High Oil Temp', severity: 'Warning', status: 'Resolved' },
+    { id: 'H8', date: '05-May-2026', time: '23:00:00', sensor: 'LUG Temperature', alertType: 'High Lug Temp', severity: 'Warning', status: 'Resolved' },
+    { id: 'H9', date: '04-May-2026', time: '15:15:00', sensor: 'Oil Level', alertType: 'Low Oil Level', severity: 'Warning', status: 'Resolved' },
+    { id: 'H10', date: '03-May-2026', time: '07:00:00', sensor: 'LUG Temperature', alertType: 'High Lug Temp', severity: 'Critical', status: 'Resolved' },
+  ],
+  'DT-5102': [
+    { id: 'H11', date: '10-May-2026', time: '08:45:00', sensor: 'Oil Temperature', alertType: 'High Oil Temp', severity: 'Warning', status: 'Active' },
+    { id: 'H12', date: '09-May-2026', time: '20:30:00', sensor: 'Oil Temperature', alertType: 'High Oil Temp', severity: 'Warning', status: 'Acknowledged' },
+    { id: 'H13', date: '08-May-2026', time: '11:00:00', sensor: 'Oil Temperature', alertType: 'High Oil Temp', severity: 'Warning', status: 'Resolved' },
+    { id: 'H14', date: '07-May-2026', time: '09:25:00', sensor: 'LUG Temperature', alertType: 'High Lug Temp', severity: 'Warning', status: 'Resolved' },
+    { id: 'H15', date: '06-May-2026', time: '16:50:00', sensor: 'Oil Level', alertType: 'Low Oil Level', severity: 'Warning', status: 'Resolved' },
+  ],
+  'DT-2156': [
+    { id: 'H16', date: '02-May-2026', time: '10:10:00', sensor: 'Oil Level', alertType: 'Low Oil Level', severity: 'Warning', status: 'Resolved' },
+    { id: 'H17', date: '28-Apr-2026', time: '03:20:00', sensor: 'LUG Temperature', alertType: 'High Lug Temp', severity: 'Warning', status: 'Resolved' },
+  ],
+  'DT-4521': [],
+  'DT-1892': [],
+  'DT-6780': [],
+};
+
+// ─── Chart & table data ──────────────────────────────────────────────────────
+
 function genSine(base: number, amplitude: number, offset: number = 0): { time: string; value: number }[] {
   return Array.from({ length: 24 }, (_, i) => ({
     time: `${String(i).padStart(2, '0')}:00`,

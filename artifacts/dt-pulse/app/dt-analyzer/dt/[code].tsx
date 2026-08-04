@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
@@ -7,7 +7,14 @@ import { Svg, Polyline } from 'react-native-svg';
 import useColors from '@/hooks/useColors';
 import { AppHeader } from '@/components/AppHeader';
 import { StatusBadge } from '@/components/StatusBadge';
-import { DT_LIST, DT_DETAILS, LUG_CHART_DATA, OIL_TEMP_CHART_DATA, OIL_LEVEL_CHART_DATA, LUG_TABLE, OIL_TEMP_TABLE, OIL_LEVEL_TABLE } from '@/lib/mockDT';
+import {
+  DT_LIST, DT_DETAILS, DT_ALERT_HISTORY,
+  LUG_CHART_DATA, OIL_TEMP_CHART_DATA, OIL_LEVEL_CHART_DATA,
+  LUG_TABLE, OIL_TEMP_TABLE, OIL_LEVEL_TABLE,
+  type AlertHistory,
+} from '@/lib/mockDT';
+
+// ─── Sub-components ──────────────────────────────────────────────────────────
 
 function SnapTile({ label, value, icon, colors, danger, warning }: any) {
   return (
@@ -95,7 +102,7 @@ function OilLevelBar({ data, colors: c }: { data: { time: string; value: number 
 
 type ViewType = 'graph' | 'table';
 
-function SectionToggle({ title, view, setView, onExport, colors }: { title: string; view: ViewType; setView: (v: ViewType) => void; onExport?: () => void; colors: any }) {
+function SectionToggle({ title, view, setView, colors }: { title: string; view: ViewType; setView: (v: ViewType) => void; colors: any }) {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12, gap: 8 }}>
       <Text style={{ fontSize: 12, fontWeight: '700' as const, color: colors.foreground, fontFamily: 'Inter_700Bold', textTransform: 'uppercase' as const, letterSpacing: 1, flex: 1 }}>{title}</Text>
@@ -144,14 +151,99 @@ function TableView({ columns, rows, colors }: { columns: string[]; rows: Record<
   );
 }
 
+// ─── Alerts History Table ────────────────────────────────────────────────────
+
+function AlertsHistorySection({ history, highlightId, colors }: { history: AlertHistory[]; highlightId: string | null; colors: any }) {
+  const COLS = ['Date', 'Time', 'Sensor', 'Alert Type', 'Severity', 'Status'];
+
+  const severityColor = (s: AlertHistory['severity']) =>
+    s === 'Critical' ? colors.destructive : colors.warning;
+  const statusColor = (s: AlertHistory['status']) =>
+    s === 'Active' ? colors.destructive : s === 'Acknowledged' ? colors.warning : colors.success;
+
+  if (history.length === 0) {
+    return (
+      <View style={{ alignItems: 'center', paddingVertical: 20, gap: 6 }}>
+        <Feather name="check-circle" size={24} color={colors.success} />
+        <Text style={{ fontSize: 13, color: colors.mutedForeground, fontFamily: 'Inter_400Regular' }}>No alert history for this DT</Text>
+      </View>
+    );
+  }
+
+  return (
+    <ScrollView horizontal showsHorizontalScrollIndicator>
+      <View>
+        {/* Header */}
+        <View style={{ flexDirection: 'row', backgroundColor: colors.muted, borderRadius: 8, marginBottom: 4 }}>
+          {COLS.map((col) => (
+            <View key={col} style={{ width: col === 'Sensor' || col === 'Alert Type' ? 148 : 108, padding: 8 }}>
+              <Text style={{ fontSize: 10, fontWeight: '700' as const, color: colors.foreground, fontFamily: 'Inter_700Bold', textTransform: 'uppercase' as const }}>{col}</Text>
+            </View>
+          ))}
+        </View>
+
+        {/* Rows */}
+        {history.map((row) => {
+          const isHighlighted = highlightId != null && row.id === highlightId;
+          return (
+            <View
+              key={row.id}
+              style={{
+                flexDirection: 'row',
+                borderBottomWidth: 1,
+                borderBottomColor: colors.border,
+                backgroundColor: isHighlighted ? `${colors.warning}18` : 'transparent',
+                borderLeftWidth: isHighlighted ? 3 : 0,
+                borderLeftColor: colors.warning,
+              }}
+            >
+              <View style={{ width: 108, padding: 8 }}>
+                <Text style={{ fontSize: 11, color: colors.foreground, fontFamily: 'Inter_400Regular' }}>{row.date}</Text>
+              </View>
+              <View style={{ width: 108, padding: 8 }}>
+                <Text style={{ fontSize: 11, color: colors.foreground, fontFamily: 'Inter_400Regular' }}>{row.time}</Text>
+              </View>
+              <View style={{ width: 148, padding: 8 }}>
+                <Text style={{ fontSize: 11, color: colors.foreground, fontFamily: 'Inter_400Regular' }}>{row.sensor}</Text>
+              </View>
+              <View style={{ width: 148, padding: 8 }}>
+                <Text style={{ fontSize: 11, color: colors.foreground, fontFamily: 'Inter_400Regular' }}>{row.alertType}</Text>
+              </View>
+              <View style={{ width: 108, padding: 8 }}>
+                <Text style={{ fontSize: 11, fontWeight: '600' as const, color: severityColor(row.severity), fontFamily: 'Inter_600SemiBold' }}>{row.severity}</Text>
+              </View>
+              <View style={{ width: 108, padding: 8 }}>
+                <View style={{ paddingHorizontal: 8, paddingVertical: 3, borderRadius: 100, backgroundColor: `${statusColor(row.status)}18`, alignSelf: 'flex-start' }}>
+                  <Text style={{ fontSize: 10, fontWeight: '600' as const, color: statusColor(row.status), fontFamily: 'Inter_600SemiBold' }}>{row.status}</Text>
+                </View>
+              </View>
+            </View>
+          );
+        })}
+      </View>
+    </ScrollView>
+  );
+}
+
+// ─── Main Screen ─────────────────────────────────────────────────────────────
+
 export default function DTInfoScreen() {
   const colors = useColors();
-  const { code } = useLocalSearchParams<{ code: string }>();
+  const { code, alertId } = useLocalSearchParams<{ code: string; alertId?: string }>();
   const insets = useSafeAreaInsets();
   const headerH = insets.top + (Platform.OS === 'web' ? 67 + 56 : 56);
+  const scrollRef = useRef<ScrollView>(null);
+  const alertsHistoryY = useRef<number>(0);
 
   const dt = DT_LIST.find((d) => d.code === code) ?? DT_LIST[0];
   const details = DT_DETAILS[code ?? ''] ?? {};
+  const alertHistory = DT_ALERT_HISTORY[dt.code] ?? [];
+
+  // Map alertId (ActiveAlert id like "A1") to closest AlertHistory entry by finding same DT
+  // The highlight is shown on the first Active row since the alertId points to an active alert
+  const highlightHistoryId = alertId
+    ? (alertHistory.find((h) => h.status === 'Active')?.id ?? null)
+    : null;
 
   const [genInfoOpen, setGenInfoOpen] = useState(false);
   const [lugView, setLugView] = useState<ViewType>('graph');
@@ -172,6 +264,15 @@ export default function DTInfoScreen() {
     genInfoRow: { flexDirection: 'row', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.border },
     genInfoLabel: { fontSize: 12, color: colors.mutedForeground, fontFamily: 'Inter_500Medium', width: 140 },
     genInfoValue: { fontSize: 12, color: colors.foreground, fontFamily: 'Inter_400Regular', flex: 1 },
+    sectionTitle: { fontSize: 12, fontWeight: '700' as const, color: colors.foreground, fontFamily: 'Inter_700Bold', textTransform: 'uppercase' as const, letterSpacing: 1 },
+    // Deep-link banner
+    alertBanner: {
+      flexDirection: 'row', alignItems: 'center', gap: 8,
+      backgroundColor: `${colors.warning}18`, borderRadius: 10,
+      borderWidth: 1, borderColor: `${colors.warning}40`,
+      padding: 12, marginBottom: 16,
+    },
+    alertBannerText: { fontSize: 13, color: colors.warning, fontFamily: 'Inter_500Medium', flex: 1 },
   });
 
   const lugTableCols = ['Device ID', 'Sensor Type', 'Server Time', 'Firmware', 'Analog', 'Battery', 'RSSI', 'Error'];
@@ -181,12 +282,29 @@ export default function DTInfoScreen() {
   return (
     <View style={s.container}>
       <AppHeader title="DT Analyzer" back />
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll}>
+      <ScrollView
+        ref={scrollRef}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={s.scroll}
+      >
         {/* Back button */}
         <Pressable style={s.backRow} onPress={() => router.back()}>
           <Feather name="arrow-left" size={14} color={colors.accent} />
           <Text style={s.backText}>Back to DT List</Text>
         </Pressable>
+
+        {/* Alert deep-link banner */}
+        {alertId && (
+          <View style={s.alertBanner}>
+            <Feather name="alert-triangle" size={16} color={colors.warning} />
+            <Text style={s.alertBannerText}>Navigated from active alert — relevant history highlighted below.</Text>
+            <Pressable
+              onPress={() => scrollRef.current?.scrollTo({ y: alertsHistoryY.current, animated: true })}
+            >
+              <Text style={{ fontSize: 12, color: colors.accent, fontFamily: 'Inter_600SemiBold' }}>Jump ↓</Text>
+            </Pressable>
+          </View>
+        )}
 
         {/* Header Card */}
         <View style={s.headerCard}>
@@ -204,7 +322,7 @@ export default function DTInfoScreen() {
         {/* General Information Accordion */}
         <View style={s.section}>
           <Pressable style={{ flexDirection: 'row', alignItems: 'center' }} onPress={() => setGenInfoOpen(!genInfoOpen)}>
-            <Text style={{ fontSize: 12, fontWeight: '700' as const, color: colors.foreground, fontFamily: 'Inter_700Bold', textTransform: 'uppercase' as const, letterSpacing: 1, flex: 1 }}>General Information</Text>
+            <Text style={[s.sectionTitle, { flex: 1 }]}>General Information</Text>
             <Feather name={genInfoOpen ? 'chevron-up' : 'chevron-down'} size={16} color={colors.mutedForeground} />
           </Pressable>
           {genInfoOpen && (
@@ -230,7 +348,7 @@ export default function DTInfoScreen() {
 
         {/* Latest Snapshot */}
         <View style={s.section}>
-          <Text style={{ fontSize: 12, fontWeight: '700' as const, color: colors.foreground, fontFamily: 'Inter_700Bold', textTransform: 'uppercase' as const, letterSpacing: 1, marginBottom: 12 }}>Latest Snapshot</Text>
+          <Text style={[s.sectionTitle, { marginBottom: 12 }]}>Latest Snapshot</Text>
           <View style={s.snapRow}>
             <SnapTile label="Lug R" value={dt.lugR} icon="thermometer" colors={colors} danger={dt.lugRAlert} />
             <SnapTile label="Lug Y" value={dt.lugY} icon="thermometer" colors={colors} />
@@ -310,6 +428,31 @@ export default function DTInfoScreen() {
             />
           )}
         </View>
+
+        {/* ── Alerts History ─────────────────────────────────────────────── */}
+        <View
+          style={s.section}
+          onLayout={(e) => { alertsHistoryY.current = e.nativeEvent.layout.y; }}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+            <Text style={[s.sectionTitle, { flex: 1 }]}>Alerts History</Text>
+            {highlightHistoryId && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: colors.warning }} />
+                <Text style={{ fontSize: 11, color: colors.warning, fontFamily: 'Inter_500Medium' }}>Linked alert highlighted</Text>
+              </View>
+            )}
+          </View>
+          <Text style={{ fontSize: 11, color: colors.mutedForeground, fontFamily: 'Inter_400Regular', marginBottom: 10 }}>
+            Showing alerts for LUG Temperature, Oil Temperature and Oil Level · Newest first
+          </Text>
+          <AlertsHistorySection
+            history={alertHistory}
+            highlightId={highlightHistoryId}
+            colors={colors}
+          />
+        </View>
+
       </ScrollView>
     </View>
   );
