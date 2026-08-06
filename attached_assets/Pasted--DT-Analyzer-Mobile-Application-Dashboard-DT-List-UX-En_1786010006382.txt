@@ -1,0 +1,339 @@
+# DT Analyzer Mobile Application – Dashboard & DT List UX Enhancements
+
+Implement the following UI/UX improvements for the **DT Analyzer** module in the mobile application. These changes are focused on improving filtering, dashboard usability, data visualization, and reducing excessive vertical scrolling. Existing APIs and business logic should remain unchanged unless explicitly mentioned below.
+
+---
+
+# 1. Dashboard – Replace Inline Hierarchy Filters with Filter Drawer
+
+## Current Behavior
+
+The Dashboard currently displays three dropdowns directly below the Dashboard/DT List/Alerts tabs:
+
+- Circle
+- Division
+- Sub-Division
+
+These occupy unnecessary screen space and reduce the available area for dashboard analytics.
+
+---
+
+## New Behavior
+
+### Remove the following inline dropdowns completely:
+
+- Circle
+- Division
+- Sub-Division
+
+There should no longer be any hierarchy filters visible directly on the Dashboard.
+
+---
+
+## Add Filter Icon
+
+Place a **Filter icon** on the **right side** of the **DT Overview / Sensor Overview** segmented toggle.
+
+Layout should be:
+
+```
+------------------------------------------------
+DT Overview      Sensor Overview        [Filter]
+------------------------------------------------
+```
+
+The filter icon should be aligned to the extreme right of the segmented control without disturbing its layout.
+
+---
+
+# 2. Hierarchy Filter Screen (Dashboard)
+
+When the user taps the Filter icon, open a dedicated full-screen (or bottom-sheet) hierarchy filter interface.
+
+The interaction should follow a modern shopping-app style filter layout.
+
+## Layout
+
+### Left Panel
+
+A vertical category selector containing:
+
+- Circle
+- Division
+- Sub-Division
+
+Only one category should be active at a time.
+
+Example:
+
+```
+Circle
+Division
+Sub-Division
+```
+
+The selected category should have a highlighted background.
+
+---
+
+### Right Panel
+
+Display all available options for the selected category using checkboxes.
+
+Example:
+
+```
+☐ Select All
+
+☑ Kanpur North
+☐ Kanpur South
+☐ Kanpur East
+☐ Kanpur West
+☐ Central
+...
+```
+
+Requirements:
+
+- Search bar at top
+- Select All option
+- Checkbox selection
+- Multi-select support where applicable
+- Scrollable list
+- Proper spacing
+- Native mobile interaction
+
+---
+
+## Filter Flow
+
+### Circle
+
+User selects one or multiple circles.
+
+↓
+
+### Division
+
+Only divisions belonging to the selected circles should appear.
+
+↓
+
+### Sub-Division
+
+Only subdivisions belonging to the selected division(s) should appear.
+
+---
+
+## Bottom Action Bar
+
+At the bottom of the filter screen, provide:
+
+Left Button
+
+**Cancel**
+
+Right Button
+
+**Apply Filter**
+
+Behavior:
+
+- Apply Filter updates the Dashboard KPIs, graphs, tables, and active alerts.
+- Cancel closes without applying.
+- Preserve selected filters until user clears them.
+
+---
+
+# 3. Apply the Same Filter Experience in DT List
+
+The DT List screen currently has its own filter button.
+
+Replace its existing hierarchy filter behavior with exactly the same filter screen described above.
+
+The filter experience must remain identical across:
+
+- Dashboard
+- DT List
+
+including:
+
+- Left-side category navigation
+- Search
+- Checkbox selection
+- Select All
+- Circle → Division → Sub-Division dependency
+- Apply Filter button
+
+This ensures a consistent filtering experience throughout the application.
+
+---
+
+# 4. Dashboard – DT Rating Status
+
+Currently only a graph is displayed.
+
+Add a display toggle on the top-right of the DT Rating Status card.
+
+The toggle should contain:
+
+- Graph View
+- Table View
+
+Default:
+
+**Graph View**
+
+---
+
+## Graph View
+
+Keep the existing chart exactly as it is.
+
+Maintain:
+
+- Download button
+- Chart responsiveness
+- Existing legends
+
+---
+
+## Table View
+
+Replace the graph with a horizontally scrollable table.
+
+Columns:
+
+| Rating | Live | Outage | Unavailable |
+|--------|------|---------|-------------|
+| 25 kVA | Live Count | Outage Count | Unavailable Count |
+| 63 kVA | Live Count | Outage Count | Unavailable Count |
+| 100 kVA | Live Count | Outage Count | Unavailable Count |
+| 160 kVA | Live Count | Outage Count | Unavailable Count |
+| 250 kVA | Live Count | Outage Count | Unavailable Count |
+
+Requirements:
+
+- Horizontal scrolling if required.
+- Sticky header.
+- Same dark/light theme styling as existing dashboard cards.
+- Live values in green.
+- Outage values in red.
+- Unavailable values in orange/amber.
+- Rounded card styling consistent with the dashboard.
+
+---
+
+# 5. Dashboard – Sensor Status by Type
+
+Currently only the graph is shown.
+
+Add the same toggle:
+
+- Graph
+- Table
+
+Default:
+
+Graph
+
+---
+
+## Graph View
+
+Keep the existing sensor graph.
+
+Maintain:
+
+- Download button
+- Existing responsiveness
+- Existing legends
+
+---
+
+## Table View
+
+Replace the graph with a vertically scrollable table.
+
+Columns:
+
+| Sensor Type | Active | Inactive |
+|-------------|---------|----------|
+| Oil Level | Active Count | Inactive Count |
+| Oil Temperature | Active Count | Inactive Count |
+| Lug Temperature | Active Count | Inactive Count |
+| Ambient Temperature | Active Count | Inactive Count |
+| Humidity | Active Count | Inactive Count |
+
+Requirements:
+
+- Vertical scrolling inside the card.
+- Sticky header.
+- Active values in green.
+- Inactive values in red.
+- Same card styling as DT Rating Status.
+
+---
+
+# 6. Scrolling Behaviour for Graphs & Tables
+
+To improve usability:
+
+## Graph Mode
+
+Cards should scroll **horizontally only if needed**, while preserving chart visibility.
+
+## Table Mode
+
+Tables should have **internal vertical scrolling** within the card.
+
+The rest of the dashboard should not become excessively long because of large tables.
+
+---
+
+# 7. Active Alerts Section Improvements
+
+The current Active Alerts section becomes excessively long because all alerts are displayed continuously.
+
+Replace this with a structured list.
+
+---
+
+## Display Rules
+
+Show only **10 alert records at a time**.
+
+The list itself should have an **internal vertical scroll**.
+
+---
+
+## Pagination
+
+Below the alert list, add pagination controls.
+
+Example:
+
+```
+< Previous     1 2 3 4 5     Next >
+```
+
+Requirements:
+
+- 10 alerts per page.
+- Internal scrolling only for the visible records.
+- Pagination updates the list without affecting the rest of the Dashboard.
+- Preserve active filters while paging.
+- Maintain current sorting logic.
+
+---
+
+# General Requirements
+
+- Do not modify any existing APIs or business logic.
+- Only improve the UI/UX and presentation.
+- Preserve existing dashboard calculations and KPI logic.
+- Ensure consistent spacing, typography, and card styling across all new components.
+- Use the same design language already implemented in the mobile application.
+- All newly added filter screens, table views, toggles, scrolling behavior, and pagination should be fully responsive and optimized for mobile devices.
+- Maintain smooth transitions between Graph and Table views without reloading the page.
+```

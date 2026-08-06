@@ -1,21 +1,16 @@
 import React, { useState } from 'react';
-import { Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import useColors from '@/hooks/useColors';
 import { StatusBadge } from '@/components/StatusBadge';
-import { DT_LIST, HIERARCHY, type DTListItem } from '@/lib/mockDT';
+import { HierarchyFilterSheet, type HierarchyFilterValue } from '@/components/HierarchyFilterSheet';
+import { DT_LIST, DT_KPIS, type DTListItem } from '@/lib/mockDT';
 
-interface Filters {
-  circle: string;
-  division: string;
-  subDivision: string;
-  status: string;
-}
+const EMPTY_HF: HierarchyFilterValue = { circles: [], divisions: [], subDivisions: [] };
 
-const EMPTY_FILTERS: Filters = { circle: '', division: '', subDivision: '', status: '' };
-
+// ─── Sub-components ───────────────────────────────────────────────────────────
 function LugChip({ label, value, alert, colors }: { label: string; value: string; alert: boolean; colors: any }) {
   return (
     <View style={{ borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6, backgroundColor: alert ? colors.destructiveBg : colors.muted, alignItems: 'center', flex: 1 }}>
@@ -60,10 +55,10 @@ function DTCard({ dt, expanded, onToggle, colors }: { dt: DTListItem; expanded: 
           </View>
 
           {[
-            { label: 'Lug Alert', value: dt.lugAlert, ts: dt.lugAlertTs },
-            { label: 'Oil Temp Alert', value: dt.oilTempAlert, ts: dt.oilTempAlertTs },
-            { label: 'Oil Level Alert', value: dt.oilLevelAlert, ts: dt.oilLevelAlertTs },
-            { label: 'Outage', value: dt.outage, ts: dt.outageTs },
+            { label: 'Lug Alert',       value: dt.lugAlert,       ts: dt.lugAlertTs },
+            { label: 'Oil Temp Alert',  value: dt.oilTempAlert,   ts: dt.oilTempAlertTs },
+            { label: 'Oil Level Alert', value: dt.oilLevelAlert,  ts: dt.oilLevelAlertTs },
+            { label: 'Outage',          value: dt.outage,         ts: dt.outageTs },
           ].map((row) => (
             <View key={row.label} style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 5, borderBottomWidth: 1, borderBottomColor: colors.border }}>
               <Text style={{ fontSize: 12, color: colors.mutedForeground, fontFamily: 'Inter_500Medium', flex: 1 }}>{row.label}</Text>
@@ -96,73 +91,57 @@ function DTCard({ dt, expanded, onToggle, colors }: { dt: DTListItem; expanded: 
   );
 }
 
+// ─── DTListTab ────────────────────────────────────────────────────────────────
 export default function DTListTab({ paddingTop }: { paddingTop: number }) {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const [search, setSearch] = useState('');
-  const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
-  const [pendingFilters, setPendingFilters] = useState<Filters>(EMPTY_FILTERS);
-  const [filterOpen, setFilterOpen] = useState(false);
-  const [expanded, setExpanded] = useState<string | null>(null);
 
-  const activeFilterCount = Object.values(filters).filter((v) => v !== '').length;
+  const [search, setSearch]           = useState('');
+  const [appliedFilter, setAppliedFilter] = useState<HierarchyFilterValue>(EMPTY_HF);
+  const [statusFilter, setStatusFilter]   = useState('');   // separate quick status chip
+  const [filterOpen, setFilterOpen]   = useState(false);
+  const [expanded, setExpanded]       = useState<string | null>(null);
 
-  // Cascading options
-  const availableDivisions = pendingFilters.circle
-    ? (HIERARCHY.divisions[pendingFilters.circle] ?? [])
-    : [];
-  const availableSubDivisions = pendingFilters.division
-    ? (HIERARCHY.subDivisions[pendingFilters.division] ?? [])
-    : [];
+  const { circles, divisions, subDivisions } = appliedFilter;
+  const hierarchyFilterCount = circles.length + divisions.length + subDivisions.length;
+  const activeFilterCount    = hierarchyFilterCount + (statusFilter ? 1 : 0);
 
   const filtered = DT_LIST.filter((dt) => {
     const q = search.toLowerCase();
-    const matchSearch = !q || dt.code.toLowerCase().includes(q) || dt.subDivision.toLowerCase().includes(q) || dt.substation.toLowerCase().includes(q);
-    const matchCircle = !filters.circle || dt.circle === filters.circle;
-    const matchDiv = !filters.division || dt.division === filters.division;
-    const matchSubDiv = !filters.subDivision || dt.subDivision === filters.subDivision;
-    const matchStatus = !filters.status || dt.status === filters.status;
+    const matchSearch   = !q || dt.code.toLowerCase().includes(q) || dt.subDivision.toLowerCase().includes(q) || dt.substation.toLowerCase().includes(q);
+    const matchCircle   = !circles.length      || circles.includes(dt.circle);
+    const matchDiv      = !divisions.length    || divisions.includes(dt.division);
+    const matchSubDiv   = !subDivisions.length || subDivisions.includes(dt.subDivision);
+    const matchStatus   = !statusFilter        || dt.status === statusFilter;
     return matchSearch && matchCircle && matchDiv && matchSubDiv && matchStatus;
   });
 
   const s = StyleSheet.create({
-    scroll: { paddingTop: paddingTop + 12, paddingBottom: insets.bottom + (Platform.OS === 'web' ? 34 : 80), paddingHorizontal: 16 },
-    kpiStrip: { flexDirection: 'row', gap: 6, marginBottom: 14 },
-    kpiChip: { flex: 1, backgroundColor: colors.card, borderRadius: 10, padding: 10, borderWidth: 1, borderColor: colors.border, alignItems: 'center' },
-    kpiValue: { fontSize: 18, fontWeight: '700' as const, fontFamily: 'Inter_700Bold' },
-    kpiLabel: { fontSize: 10, color: colors.mutedForeground, fontFamily: 'Inter_500Medium', textTransform: 'uppercase' as const, marginTop: 2 },
-    searchRow: { flexDirection: 'row', gap: 8, marginBottom: 12 },
-    searchBox: { flex: 1, flexDirection: 'row', alignItems: 'center', height: 42, borderRadius: 10, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.card, paddingHorizontal: 12, gap: 8 },
+    scroll:      { paddingTop: paddingTop + 12, paddingBottom: insets.bottom + (Platform.OS === 'web' ? 34 : 100), paddingHorizontal: 16 },
+    kpiStrip:    { flexDirection: 'row', gap: 6, marginBottom: 14 },
+    kpiChip:     { flex: 1, backgroundColor: colors.card, borderRadius: 10, padding: 10, borderWidth: 1, borderColor: colors.border, alignItems: 'center' },
+    kpiValue:    { fontSize: 18, fontWeight: '700' as const, fontFamily: 'Inter_700Bold' },
+    kpiLabel:    { fontSize: 10, color: colors.mutedForeground, fontFamily: 'Inter_500Medium', textTransform: 'uppercase' as const, marginTop: 2 },
+    searchRow:   { flexDirection: 'row', gap: 8, marginBottom: 10 },
+    searchBox:   { flex: 1, flexDirection: 'row', alignItems: 'center', height: 42, borderRadius: 10, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.card, paddingHorizontal: 12, gap: 8 },
     searchInput: { flex: 1, fontSize: 14, color: colors.foreground, fontFamily: 'Inter_400Regular' },
-    filterBtn: { width: 42, height: 42, borderRadius: 10, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' },
-    countText: { fontSize: 12, color: colors.mutedForeground, fontFamily: 'Inter_400Regular', marginBottom: 10 },
-    modal: { flex: 1, justifyContent: 'flex-end', backgroundColor: colors.overlay },
-    sheet: { backgroundColor: colors.card, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, paddingBottom: insets.bottom + 24, maxHeight: '90%' },
-    sheetTitle: { fontSize: 18, fontWeight: '700' as const, color: colors.foreground, fontFamily: 'Inter_700Bold', marginBottom: 16 },
-    sheetLabel: { fontSize: 11, fontWeight: '600' as const, color: colors.mutedForeground, fontFamily: 'Inter_600SemiBold', textTransform: 'uppercase' as const, marginBottom: 6 },
-    sheetBtnRow: { flexDirection: 'row', gap: 10, marginTop: 8 },
-    sheetBtn: { flex: 1, height: 46, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-    // Cascade selector
-    cascadeStep: { marginBottom: 14 },
-    cascadeHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
-    stepCircle: { width: 20, height: 20, borderRadius: 10, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', marginRight: 8 },
-    stepNum: { fontSize: 11, fontWeight: '700' as const, color: '#FFFFFF', fontFamily: 'Inter_700Bold' },
-    optionPill: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 100, borderWidth: 1, marginRight: 6, marginBottom: 6 },
-    optionText: { fontSize: 13, fontFamily: 'Inter_500Medium' },
+    filterBtn:   {
+      width: 42, height: 42, borderRadius: 10,
+      backgroundColor: hierarchyFilterCount > 0 ? `${colors.primary}15` : colors.card,
+      borderWidth: 1, borderColor: hierarchyFilterCount > 0 ? colors.primary : colors.border,
+      alignItems: 'center', justifyContent: 'center',
+    },
+    statusRow:   { flexDirection: 'row', gap: 6, marginBottom: 10 },
+    statusChip:  { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 100, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.card },
+    countText:   { fontSize: 12, color: colors.mutedForeground, fontFamily: 'Inter_400Regular', marginBottom: 10 },
   });
 
-  const setPendingCircle = (val: string) =>
-    setPendingFilters((f) => ({ ...f, circle: val, division: '', subDivision: '' }));
-  const setPendingDivision = (val: string) =>
-    setPendingFilters((f) => ({ ...f, division: val, subDivision: '' }));
-  const setPendingSubDiv = (val: string) =>
-    setPendingFilters((f) => ({ ...f, subDivision: val }));
-  const setPendingStatus = (val: string) =>
-    setPendingFilters((f) => ({ ...f, status: val }));
+  const STATUS_OPTIONS = ['Normal', 'Attention', 'Outage'];
 
   return (
     <>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll}>
+
         {/* KPI Strip */}
         <View style={s.kpiStrip}>
           <View style={s.kpiChip}>
@@ -183,16 +162,74 @@ export default function DTListTab({ paddingTop }: { paddingTop: number }) {
           </View>
         </View>
 
-        {/* Search & Filter */}
+        {/* Search + Filter */}
         <View style={s.searchRow}>
           <View style={s.searchBox}>
             <Feather name="search" size={16} color={colors.mutedForeground} />
-            <TextInput style={s.searchInput} value={search} onChangeText={setSearch} placeholder="Search DTs..." placeholderTextColor={colors.mutedForeground} />
+            <TextInput
+              style={s.searchInput}
+              value={search}
+              onChangeText={setSearch}
+              placeholder="Search DTs…"
+              placeholderTextColor={colors.mutedForeground}
+            />
           </View>
-          <Pressable style={s.filterBtn} onPress={() => { setPendingFilters(filters); setFilterOpen(true); }}>
-            <Feather name="filter" size={18} color={activeFilterCount > 0 ? colors.accent : colors.foreground} />
-          </Pressable>
+          <View style={{ position: 'relative' }}>
+            <Pressable style={s.filterBtn} onPress={() => setFilterOpen(true)}>
+              <Feather name="filter" size={18} color={hierarchyFilterCount > 0 ? colors.primary : colors.foreground} />
+            </Pressable>
+            {hierarchyFilterCount > 0 && (
+              <View style={{
+                position: 'absolute', top: -4, right: -4,
+                minWidth: 16, height: 16, borderRadius: 8,
+                backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3,
+              }}>
+                <Text style={{ fontSize: 9, color: '#fff', fontFamily: 'Inter_700Bold' }}>{hierarchyFilterCount}</Text>
+              </View>
+            )}
+          </View>
         </View>
+
+        {/* Status quick-filter chips */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={[s.statusRow, { marginBottom: 10 }]}>
+          <Pressable
+            style={[s.statusChip, !statusFilter && { borderColor: colors.primary, backgroundColor: `${colors.primary}12` }]}
+            onPress={() => setStatusFilter('')}
+          >
+            <Text style={{ fontSize: 12, fontFamily: 'Inter_500Medium', color: !statusFilter ? colors.primary : colors.foreground }}>All</Text>
+          </Pressable>
+          {STATUS_OPTIONS.map(opt => {
+            const active = statusFilter === opt;
+            const col    = opt === 'Normal' ? colors.success : opt === 'Attention' ? colors.warning : colors.destructive;
+            return (
+              <Pressable
+                key={opt}
+                style={[s.statusChip, { marginLeft: 6 }, active && { borderColor: col, backgroundColor: `${col}12` }]}
+                onPress={() => setStatusFilter(active ? '' : opt)}
+              >
+                <Text style={{ fontSize: 12, fontFamily: 'Inter_500Medium', color: active ? col : colors.foreground }}>{opt}</Text>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
+
+        {/* Active filter summary */}
+        {activeFilterCount > 0 && (
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8, gap: 8 }}>
+            <Feather name="filter" size={12} color={colors.primary} />
+            <Text style={{ fontSize: 12, color: colors.primary, fontFamily: 'Inter_500Medium', flex: 1 }}>
+              {[
+                circles.length > 0      && `${circles.length} circle${circles.length > 1 ? 's' : ''}`,
+                divisions.length > 0    && `${divisions.length} division${divisions.length > 1 ? 's' : ''}`,
+                subDivisions.length > 0 && `${subDivisions.length} sub-division${subDivisions.length > 1 ? 's' : ''}`,
+                statusFilter            && `Status: ${statusFilter}`,
+              ].filter(Boolean).join(' · ')}
+            </Text>
+            <Pressable onPress={() => { setAppliedFilter(EMPTY_HF); setStatusFilter(''); }} hitSlop={8}>
+              <Text style={{ fontSize: 12, color: colors.destructive, fontFamily: 'Inter_600SemiBold' }}>Clear All</Text>
+            </Pressable>
+          </View>
+        )}
 
         <Text style={s.countText}>{filtered.length} of {DT_LIST.length} DTs</Text>
 
@@ -214,128 +251,13 @@ export default function DTListTab({ paddingTop }: { paddingTop: number }) {
         )}
       </ScrollView>
 
-      {/* Filter Sheet */}
-      <Modal visible={filterOpen} transparent animationType="slide" onRequestClose={() => setFilterOpen(false)}>
-        <Pressable style={s.modal} onPress={() => setFilterOpen(false)}>
-          <Pressable style={s.sheet} onPress={() => {}}>
-            <Text style={s.sheetTitle}>Filter DTs</Text>
-            <ScrollView showsVerticalScrollIndicator={false}>
-
-              {/* Step 1: Circle */}
-              <View style={s.cascadeStep}>
-                <View style={s.cascadeHeader}>
-                  <View style={s.stepCircle}><Text style={s.stepNum}>1</Text></View>
-                  <Text style={s.sheetLabel}>Circle</Text>
-                </View>
-                <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-                  {['', ...HIERARCHY.circles].map((opt) => {
-                    const active = pendingFilters.circle === opt;
-                    return (
-                      <Pressable
-                        key={opt || '__all__'}
-                        style={[s.optionPill, { borderColor: active ? colors.accent : colors.border, backgroundColor: active ? `${colors.accent}15` : colors.card }]}
-                        onPress={() => setPendingCircle(opt)}
-                      >
-                        <Text style={[s.optionText, { color: active ? colors.accent : colors.foreground }]}>{opt || 'All'}</Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-              </View>
-
-              {/* Step 2: Division — enabled only after Circle */}
-              <View style={[s.cascadeStep, !pendingFilters.circle && { opacity: 0.4 }]}>
-                <View style={s.cascadeHeader}>
-                  <View style={[s.stepCircle, !pendingFilters.circle && { backgroundColor: colors.mutedForeground }]}>
-                    <Text style={s.stepNum}>2</Text>
-                  </View>
-                  <Text style={s.sheetLabel}>Division</Text>
-                </View>
-                {pendingFilters.circle ? (
-                  <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-                    {['', ...availableDivisions].map((opt) => {
-                      const active = pendingFilters.division === opt;
-                      return (
-                        <Pressable
-                          key={opt || '__all__'}
-                          style={[s.optionPill, { borderColor: active ? colors.accent : colors.border, backgroundColor: active ? `${colors.accent}15` : colors.card }]}
-                          onPress={() => setPendingDivision(opt)}
-                        >
-                          <Text style={[s.optionText, { color: active ? colors.accent : colors.foreground }]}>{opt || 'All'}</Text>
-                        </Pressable>
-                      );
-                    })}
-                  </View>
-                ) : (
-                  <Text style={{ fontSize: 13, color: colors.mutedForeground, fontFamily: 'Inter_400Regular' }}>Select a Circle first</Text>
-                )}
-              </View>
-
-              {/* Step 3: Sub-Division — enabled only after Division */}
-              <View style={[s.cascadeStep, !pendingFilters.division && { opacity: 0.4 }]}>
-                <View style={s.cascadeHeader}>
-                  <View style={[s.stepCircle, !pendingFilters.division && { backgroundColor: colors.mutedForeground }]}>
-                    <Text style={s.stepNum}>3</Text>
-                  </View>
-                  <Text style={s.sheetLabel}>Sub-Division</Text>
-                </View>
-                {pendingFilters.division ? (
-                  <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-                    {['', ...availableSubDivisions].map((opt) => {
-                      const active = pendingFilters.subDivision === opt;
-                      return (
-                        <Pressable
-                          key={opt || '__all__'}
-                          style={[s.optionPill, { borderColor: active ? colors.accent : colors.border, backgroundColor: active ? `${colors.accent}15` : colors.card }]}
-                          onPress={() => setPendingSubDiv(opt)}
-                        >
-                          <Text style={[s.optionText, { color: active ? colors.accent : colors.foreground }]}>{opt || 'All'}</Text>
-                        </Pressable>
-                      );
-                    })}
-                  </View>
-                ) : (
-                  <Text style={{ fontSize: 13, color: colors.mutedForeground, fontFamily: 'Inter_400Regular' }}>Select a Division first</Text>
-                )}
-              </View>
-
-              {/* DT Status */}
-              <View style={s.cascadeStep}>
-                <View style={s.cascadeHeader}>
-                  <View style={[s.stepCircle, { backgroundColor: colors.mutedForeground }]}>
-                    <Text style={s.stepNum}>4</Text>
-                  </View>
-                  <Text style={s.sheetLabel}>DT Status</Text>
-                </View>
-                <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-                  {['', 'Normal', 'Attention', 'Outage'].map((opt) => {
-                    const active = pendingFilters.status === opt;
-                    return (
-                      <Pressable
-                        key={opt || '__all__'}
-                        style={[s.optionPill, { borderColor: active ? colors.accent : colors.border, backgroundColor: active ? `${colors.accent}15` : colors.card }]}
-                        onPress={() => setPendingStatus(opt)}
-                      >
-                        <Text style={[s.optionText, { color: active ? colors.accent : colors.foreground }]}>{opt || 'All'}</Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-              </View>
-
-            </ScrollView>
-
-            <View style={s.sheetBtnRow}>
-              <Pressable style={[s.sheetBtn, { backgroundColor: colors.muted }]} onPress={() => setPendingFilters(EMPTY_FILTERS)}>
-                <Text style={{ color: colors.foreground, fontFamily: 'Inter_600SemiBold' }}>Clear Filters</Text>
-              </Pressable>
-              <Pressable style={[s.sheetBtn, { backgroundColor: colors.primary }]} onPress={() => { setFilters(pendingFilters); setFilterOpen(false); }}>
-                <Text style={{ color: '#FFFFFF', fontFamily: 'Inter_600SemiBold' }}>Apply Filters</Text>
-              </Pressable>
-            </View>
-          </Pressable>
-        </Pressable>
-      </Modal>
+      {/* Hierarchy Filter Sheet */}
+      <HierarchyFilterSheet
+        visible={filterOpen}
+        onClose={() => setFilterOpen(false)}
+        onApply={setAppliedFilter}
+        initial={appliedFilter}
+      />
     </>
   );
 }
