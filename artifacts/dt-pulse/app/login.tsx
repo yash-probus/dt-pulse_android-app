@@ -1,27 +1,40 @@
 import React, { useState } from 'react';
 import {
-  ActivityIndicator, Alert, Image, KeyboardAvoidingView,
-  Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View,
+  ActivityIndicator, Alert, Dimensions, Image, KeyboardAvoidingView,
+  Platform, Pressable, ScrollView, TextInput, View, Text,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useApp } from '@/context/AppContext';
-import useColors from '@/hooks/useColors';
 
-const KESCO_LOGO  = require('@/assets/images/kesco-logo-clean.png');
-const DTPULSE_LOGO = require('@/assets/images/dtpulse-logo-clean.png');
+const KESCO_LOGO   = require('@/assets/images/kesco-logo-official.jpeg');
+const DTPULSE_LOGO = require('@/assets/images/dtpulse-logo-official.jpeg');
 const PROBUS_LOGO  = require('@/assets/images/probus-logo.png');
 
+const SCREEN_W  = Dimensions.get('window').width;
+const CONTENT_W = SCREEN_W - 48;           // minus 2×24 h-padding
+const HALF_W    = Math.floor(CONTENT_W / 2) - 8; // each side minus half-gap
+
+// kesco-logo-official.jpeg: the official branding image already contains
+// "Kanpur Electricity Supply Company Limited" text — NO separate Text nodes needed.
+// Its native aspect ratio is approximately 1 : 0.55 (landscape).
+const KESCO_W = HALF_W;
+const KESCO_H = Math.round(HALF_W * 0.55);
+
+// dtpulse-logo-official.jpeg native aspect ratio ≈ 2.1 : 1 (landscape).
+const DTP_W = HALF_W;
+const DTP_H = Math.round(HALF_W / 2.1);
+
 export default function LoginScreen() {
-  const colors = useColors();
   const { login } = useApp();
-  const insets = useSafeAreaInsets();
-  const [loginId, setLoginId]       = useState('engineer@kesco.in');
-  const [password, setPassword]     = useState('kesco123');
-  const [loading, setLoading]       = useState(false);
-  const [showPw, setShowPw]         = useState(false);
+  const insets    = useSafeAreaInsets();
+
+  const [loginId,    setLoginId]    = useState('engineer@kesco.in');
+  const [password,   setPassword]   = useState('kesco123');
+  const [loading,    setLoading]    = useState(false);
+  const [showPw,     setShowPw]     = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
 
   const topPad = insets.top + (Platform.OS === 'web' ? 67 : 0);
@@ -36,225 +49,98 @@ export default function LoginScreen() {
     router.replace('/(tabs)');
   };
 
-  const s = StyleSheet.create({
-    container:  { flex: 1, backgroundColor: '#F2F2F7' },
-    scroll:     { flexGrow: 1 },
-    inner: {
-      flex: 1,
-      paddingTop: topPad + 32,
-      paddingBottom: insets.bottom + 20,
-      paddingHorizontal: 24,
-      justifyContent: 'space-between',
-    },
-
-    // ── Header logo row ──────────────────────────────────────────────
-    logoRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginBottom: 32,
-      // keep it compact — don't stretch to full width
-    },
-    // KESCO side: logo + text below, constrained width
-    kescoSide: {
-      alignItems: 'flex-start',
-      flexShrink: 1,
-    },
-    kescoLogo: {
-      width: 110,
-      height: 110,
-    },
-    kescoName: {
-      fontSize: 13,
-      fontWeight: '700' as const,
-      color: '#1A4EAD',
-      fontFamily: 'Inter_700Bold',
-      marginTop: 10,
-      lineHeight: 18,
-      // constrained to same width as logo
-      width: 110,
-    },
-    kescoSubtitle: {
-      fontSize: 10,
-      fontWeight: '600' as const,
-      color: '#555',
-      fontFamily: 'Inter_600SemiBold',
-      marginTop: 4,
-      letterSpacing: 0.3,
-      textTransform: 'uppercase' as const,
-      width: 110,
-    },
-
-    // Vertical divider
-    divider: {
-      width: 1,
-      height: 110,
-      backgroundColor: '#D0D0D0',
-      marginHorizontal: 20,
-      alignSelf: 'flex-start',
-      marginTop: 0,
-    },
-
-    // DTPulse side
-    dtpulseSide: {
-      flex: 1,
-      alignItems: 'flex-start',
-      justifyContent: 'center',
-      alignSelf: 'flex-start',
-      paddingTop: 8,
-    },
-    dtpulseLogo: {
-      width: '100%' as any,
-      height: 90,
-    },
-
-    // ── Form card ────────────────────────────────────────────────────
-    card: {
-      backgroundColor: '#FFFFFF',
-      borderRadius: 16,
-      padding: 24,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.08,
-      shadowRadius: 12,
-      elevation: 3,
-      marginBottom: 12,
-    },
-    label: {
-      fontSize: 11,
-      fontWeight: '700' as const,
-      color: '#888',
-      fontFamily: 'Inter_700Bold',
-      letterSpacing: 0.8,
-      textTransform: 'uppercase' as const,
-      marginBottom: 8,
-    },
-    inputRow: {
-      flexDirection: 'row' as const,
-      alignItems: 'center',
-      borderWidth: 1,
-      borderColor: '#E0E0E0',
-      borderRadius: 10,
-      paddingHorizontal: 14,
-      height: 52,
-      backgroundColor: '#FAFAFA',
-      marginBottom: 20,
-    },
-    input: {
-      flex: 1,
-      fontSize: 15,
-      color: '#2b2c34',
-      fontFamily: 'Inter_400Regular',
-    },
-    rememberRow: {
-      flexDirection: 'row' as const,
-      alignItems: 'center',
-      marginBottom: 20,
-      gap: 10,
-    },
-    checkbox: {
-      width: 20,
-      height: 20,
-      borderRadius: 4,
-      borderWidth: 1.5,
-      borderColor: rememberMe ? '#6246ea' : '#C0C0C0',
-      backgroundColor: rememberMe ? '#6246ea' : 'transparent',
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    rememberLabel: {
-      fontSize: 14,
-      color: '#2b2c34',
-      fontFamily: 'Inter_400Regular',
-    },
-    btn: {
-      height: 52,
-      borderRadius: 10,
-      alignItems: 'center' as const,
-      justifyContent: 'center' as const,
-      backgroundColor: '#4040C0',
-    },
-    btnText: {
-      fontSize: 16,
-      fontWeight: '600' as const,
-      fontFamily: 'Inter_600SemiBold',
-      color: '#FFFFFF',
-    },
-    protoNote: {
-      fontSize: 12,
-      color: '#999',
-      fontFamily: 'Inter_400Regular',
-      textAlign: 'center' as const,
-    },
-
-    // ── Footer ───────────────────────────────────────────────────────
-    footer: {
-      alignItems: 'center' as const,
-      paddingTop: 8,
-    },
-    poweredLabel: {
-      fontSize: 12,
-      color: '#999',
-      fontFamily: 'Inter_400Regular',
-      marginBottom: 6,
-    },
-    probusLogo: {
-      width: 100,
-      height: 32,
-    },
-    linksRow: {
-      flexDirection: 'row' as const,
-      alignItems: 'center',
-      gap: 8,
-      marginTop: 12,
-    },
-    linkText: {
-      fontSize: 13,
-      color: '#6246ea',
-      fontFamily: 'Inter_500Medium',
-    },
-    linkSep: {
-      fontSize: 13,
-      color: '#C0C0C0',
-      fontFamily: 'Inter_400Regular',
-    },
-  });
+  // Tallest logo drives the divider height
+  const logoRowH = Math.max(KESCO_H, DTP_H);
 
   return (
-    <View style={s.container}>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <View style={{ flex: 1, backgroundColor: '#F2F2F7' }}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
         <ScrollView
-          contentContainerStyle={s.scroll}
+          contentContainerStyle={{ flexGrow: 1 }}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <View style={s.inner}>
+          <View style={{
+            flex: 1,
+            paddingTop: topPad + 32,
+            paddingBottom: insets.bottom + 20,
+            paddingHorizontal: 24,
+            justifyContent: 'space-between',
+          }}>
 
-            {/* ── Side-by-side logos ── */}
-            <View style={s.logoRow}>
-              {/* KESCO side */}
-              <View style={s.kescoSide}>
-                <Image source={KESCO_LOGO} style={s.kescoLogo} resizeMode="contain" />
-                <Text style={s.kescoName}>Kanpur Electricity Supply Company Limited</Text>
-                <Text style={s.kescoSubtitle}>A Government of U.P. Undertaking</Text>
+            {/* ── Logo row: KESCO | divider | DTPulse ───────────── */}
+            {/*
+              Each side is a View with explicit pixel width so text inside
+              can NEVER escape its column on Expo Web.
+              The official KESCO image already contains the company name text
+              so we intentionally omit any <Text> node here.
+            */}
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              height: logoRowH,
+              marginBottom: 32,
+              width: CONTENT_W,
+            }}>
+              {/* KESCO — left half */}
+              <View style={{
+                width: HALF_W,
+                height: logoRowH,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+                <Image
+                  source={KESCO_LOGO}
+                  style={{ width: KESCO_W, height: KESCO_H }}
+                  resizeMode="contain"
+                />
               </View>
 
               {/* Vertical divider */}
-              <View style={s.divider} />
+              <View style={{
+                width: 1,
+                height: logoRowH * 0.85,
+                backgroundColor: '#D0D0D0',
+                marginHorizontal: 8,
+              }} />
 
-              {/* DTPulse side */}
-              <View style={s.dtpulseSide}>
-                <Image source={DTPULSE_LOGO} style={s.dtpulseLogo} resizeMode="contain" />
+              {/* DTPulse — right half */}
+              <View style={{
+                width: HALF_W,
+                height: logoRowH,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+                <Image
+                  source={DTPULSE_LOGO}
+                  style={{ width: DTP_W, height: DTP_H }}
+                  resizeMode="contain"
+                />
               </View>
             </View>
 
-            {/* ── Login form ── */}
+            {/* ── Login form card ───────────────────────────────── */}
             <View>
-              <View style={s.card}>
-                <Text style={s.label}>Login ID</Text>
-                <View style={s.inputRow}>
+              <View style={{
+                backgroundColor: '#FFFFFF',
+                borderRadius: 16,
+                padding: 24,
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.08,
+                shadowRadius: 12,
+                elevation: 3,
+                marginBottom: 12,
+              }}>
+                {/* Login ID */}
+                <Text style={label}>LOGIN ID</Text>
+                <View style={field}>
                   <Ionicons name="person-outline" size={18} color="#999" style={{ marginRight: 10 }} />
                   <TextInput
-                    style={s.input}
+                    style={input}
                     value={loginId}
                     onChangeText={setLoginId}
                     placeholder="engineer@kesco.in"
@@ -264,55 +150,79 @@ export default function LoginScreen() {
                   />
                 </View>
 
-                <Text style={s.label}>Password</Text>
-                <View style={s.inputRow}>
+                {/* Password */}
+                <Text style={label}>PASSWORD</Text>
+                <View style={field}>
                   <Ionicons name="lock-closed-outline" size={18} color="#999" style={{ marginRight: 10 }} />
                   <TextInput
-                    style={s.input}
+                    style={input}
                     value={password}
                     onChangeText={setPassword}
                     secureTextEntry={!showPw}
                     placeholder="••••••••••"
                     placeholderTextColor="#BBBBBB"
                   />
-                  <Pressable onPress={() => setShowPw(!showPw)} hitSlop={10}>
+                  <Pressable onPress={() => setShowPw(v => !v)} hitSlop={10}>
                     <Ionicons name={showPw ? 'eye-off-outline' : 'eye-outline'} size={20} color="#999" />
                   </Pressable>
                 </View>
 
-                <Pressable style={s.rememberRow} onPress={() => setRememberMe(!rememberMe)}>
-                  <View style={s.checkbox}>
+                {/* Remember Me */}
+                <Pressable
+                  onPress={() => setRememberMe(v => !v)}
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 20 }}
+                >
+                  <View style={{
+                    width: 20, height: 20, borderRadius: 4, borderWidth: 1.5,
+                    borderColor: rememberMe ? '#6246ea' : '#C0C0C0',
+                    backgroundColor: rememberMe ? '#6246ea' : 'transparent',
+                    alignItems: 'center', justifyContent: 'center',
+                  }}>
                     {rememberMe && <Ionicons name="checkmark" size={13} color="#FFFFFF" />}
                   </View>
-                  <Text style={s.rememberLabel}>Remember Me</Text>
+                  <Text style={{ fontSize: 14, color: '#2b2c34', fontFamily: 'Inter_400Regular' }}>
+                    Remember Me
+                  </Text>
                 </Pressable>
 
+                {/* Sign In */}
                 <Pressable
-                  style={({ pressed }) => [s.btn, { opacity: pressed || loading ? 0.8 : 1 }]}
+                  style={({ pressed }) => ({
+                    height: 52, borderRadius: 10,
+                    alignItems: 'center', justifyContent: 'center',
+                    backgroundColor: '#4040C0',
+                    opacity: pressed || loading ? 0.8 : 1,
+                  })}
                   onPress={handleSignIn}
                   disabled={loading}
                 >
                   {loading
                     ? <ActivityIndicator color="#FFFFFF" />
-                    : <Text style={s.btnText}>Sign In</Text>
+                    : <Text style={{ fontSize: 16, fontWeight: '600', fontFamily: 'Inter_600SemiBold', color: '#FFFFFF' }}>
+                        Sign In
+                      </Text>
                   }
                 </Pressable>
               </View>
 
-              <Text style={s.protoNote}>Prototype build — any credentials are accepted.</Text>
+              <Text style={{ fontSize: 12, color: '#999', fontFamily: 'Inter_400Regular', textAlign: 'center' }}>
+                Prototype build — any credentials are accepted.
+              </Text>
             </View>
 
-            {/* ── Footer ── */}
-            <View style={s.footer}>
-              <Text style={s.poweredLabel}>Powered by</Text>
-              <Image source={PROBUS_LOGO} style={s.probusLogo} resizeMode="contain" />
-              <View style={s.linksRow}>
+            {/* ── Footer ───────────────────────────────────────── */}
+            <View style={{ alignItems: 'center', paddingTop: 8 }}>
+              <Text style={{ fontSize: 12, color: '#999', fontFamily: 'Inter_400Regular', marginBottom: 6 }}>
+                Powered by
+              </Text>
+              <Image source={PROBUS_LOGO} style={{ width: 100, height: 32 }} resizeMode="contain" />
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12 }}>
                 <Pressable onPress={() => Alert.alert('Legal', 'Terms and conditions apply.')}>
-                  <Text style={s.linkText}>Legal</Text>
+                  <Text style={{ fontSize: 13, color: '#6246ea', fontFamily: 'Inter_500Medium' }}>Legal</Text>
                 </Pressable>
-                <Text style={s.linkSep}>|</Text>
+                <Text style={{ fontSize: 13, color: '#C0C0C0', fontFamily: 'Inter_400Regular' }}>|</Text>
                 <Pressable onPress={() => Alert.alert('Support', 'Contact: support@probussmartthings.com')}>
-                  <Text style={s.linkText}>Contact & Support</Text>
+                  <Text style={{ fontSize: 13, color: '#6246ea', fontFamily: 'Inter_500Medium' }}>Contact & Support</Text>
                 </Pressable>
               </View>
             </View>
@@ -323,3 +233,33 @@ export default function LoginScreen() {
     </View>
   );
 }
+
+// ── Module-level style objects (stable references) ──────────────────────────
+const label = {
+  fontSize: 11,
+  fontWeight: '700' as const,
+  color: '#888',
+  fontFamily: 'Inter_700Bold',
+  letterSpacing: 0.8,
+  textTransform: 'uppercase' as const,
+  marginBottom: 8,
+};
+
+const field = {
+  flexDirection: 'row' as const,
+  alignItems: 'center' as const,
+  borderWidth: 1,
+  borderColor: '#E0E0E0',
+  borderRadius: 10,
+  paddingHorizontal: 14,
+  height: 52,
+  backgroundColor: '#FAFAFA',
+  marginBottom: 20,
+};
+
+const input = {
+  flex: 1,
+  fontSize: 15,
+  color: '#2b2c34',
+  fontFamily: 'Inter_400Regular',
+};
