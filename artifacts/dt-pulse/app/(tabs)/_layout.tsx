@@ -81,12 +81,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profile',
-          tabBarIcon: ({ color, focused }) => (
-            <View style={{ alignItems: 'center', justifyContent: 'center', width: 32, height: 32 }}>
-              <Feather name="user" size={22} color={focused ? colors.primary : color} />
-            </View>
-          ),
+          href: null, // accessible via AppHeader profile icon, not in tab bar
         }}
       />
     </Tabs>

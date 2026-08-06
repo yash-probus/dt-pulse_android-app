@@ -10,9 +10,9 @@ import * as Haptics from 'expo-haptics';
 import { useApp } from '@/context/AppContext';
 import useColors from '@/hooks/useColors';
 
-const KESCO_BANNER  = require('@/assets/images/kesco-banner.png');
-const DTPULSE_LOGO  = require('@/assets/images/dtpulse-logo-new.png');
-const PROBUS_LOGO   = require('@/assets/images/probus-logo.png');
+const KESCO_BANNER = require('@/assets/images/kesco-banner.png');
+const DTPULSE_LOGO = require('@/assets/images/dtpulse-logo-new.png');
+const PROBUS_LOGO  = require('@/assets/images/probus-logo.png');
 
 const SCREEN_W = Dimensions.get('window').width;
 
@@ -20,10 +20,10 @@ export default function LoginScreen() {
   const colors = useColors();
   const { login } = useApp();
   const insets = useSafeAreaInsets();
-  const [loginId, setLoginId] = useState('engineer@kesco.in');
-  const [password, setPassword] = useState('kesco123');
-  const [loading, setLoading] = useState(false);
-  const [showPw, setShowPw] = useState(false);
+  const [loginId, setLoginId]     = useState('engineer@kesco.in');
+  const [password, setPassword]   = useState('kesco123');
+  const [loading, setLoading]     = useState(false);
+  const [showPw, setShowPw]       = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
 
   const handleSignIn = async () => {
@@ -34,43 +34,41 @@ export default function LoginScreen() {
     router.replace('/(tabs)');
   };
 
-  // KESCO banner: original image is ~1070×714 ≈ 3:2 ratio
-  const bannerH = Math.round(SCREEN_W * (714 / 1070));
-  // DTPulse logo: original ~1024×683 ≈ 3:2, show at comfortable height
-  const dtpulseH = Math.round(SCREEN_W * 0.34);
+  // KESCO banner: compact — ~38% of screen width in height (reduced from natural ratio)
+  const bannerH   = Math.round(SCREEN_W * 0.38);
+  // DTPulse logo: 28% of screen width → visible without overpowering KESCO
+  const dtpulseH  = Math.round(SCREEN_W * 0.28);
+  const topPad    = insets.top + (Platform.OS === 'web' ? 67 : 0);
 
   const s = StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background },
     scroll: { flexGrow: 1 },
-
-    // ── Dark header block ──────────────────────────────────────────────
-    header: {
-      backgroundColor: colors.background,
-      paddingTop: insets.top + (Platform.OS === 'web' ? 67 : 0),
-      alignItems: 'center',
+    inner: {
+      flex: 1,
+      paddingTop: topPad,
+      paddingBottom: insets.bottom + 16,
+      justifyContent: 'space-between',
     },
+
+    // ── Branding ───────────────────────────────────────────────────────
+    brandSection: { alignItems: 'center' },
     kescoBanner: {
       width: SCREEN_W,
       height: bannerH,
     },
     dtpulseWrap: {
       width: SCREEN_W,
-      height: dtpulseH + 16,
       alignItems: 'center',
       justifyContent: 'center',
-      paddingVertical: 8,
+      paddingVertical: 10,
     },
     dtpulseLogo: {
-      width: SCREEN_W * 0.70,
+      width: SCREEN_W * 0.65,
       height: dtpulseH,
     },
 
-    // ── Form section ───────────────────────────────────────────────────
-    body: {
-      paddingHorizontal: 24,
-      paddingTop: 28,
-      paddingBottom: insets.bottom + (Platform.OS === 'web' ? 24 : 24),
-    },
+    // ── Form ───────────────────────────────────────────────────────────
+    formSection: { paddingHorizontal: 24 },
     card: {
       backgroundColor: colors.card, borderRadius: 16, padding: 20,
       shadowColor: colors.shadow, shadowOffset: { width: 0, height: 4 },
@@ -101,19 +99,19 @@ export default function LoginScreen() {
       backgroundColor: colors.primary,
     },
     btnText: { fontSize: 15, fontWeight: '600' as const, fontFamily: 'Inter_600SemiBold', color: '#FFFFFF' },
-
-    // ── Footer ─────────────────────────────────────────────────────────
     protoNote: {
       fontSize: 11, color: colors.mutedForeground, fontFamily: 'Inter_400Regular',
-      textAlign: 'center' as const, marginTop: 12,
+      textAlign: 'center' as const, marginTop: 10,
     },
-    footer: { alignItems: 'center' as const, marginTop: 24 },
+
+    // ── Footer ─────────────────────────────────────────────────────────
+    footer: { alignItems: 'center' as const, paddingBottom: 8 },
     poweredLabel: { fontSize: 11, color: colors.mutedForeground, fontFamily: 'Inter_400Regular', marginBottom: 6 },
     probusLogo: { width: 90, height: 28 },
-    linksRow: { flexDirection: 'row' as const, alignItems: 'center', gap: 6, marginTop: 12 },
+    linksRow: { flexDirection: 'row' as const, alignItems: 'center', gap: 6, marginTop: 10 },
     linkText: { fontSize: 12, color: colors.accent, fontFamily: 'Inter_500Medium' },
     linkSep: { fontSize: 12, color: colors.mutedForeground, fontFamily: 'Inter_400Regular' },
-    version: { fontSize: 11, color: colors.mutedForeground, fontFamily: 'Inter_400Regular', marginTop: 8 },
+    version: { fontSize: 11, color: colors.mutedForeground, fontFamily: 'Inter_400Regular', marginTop: 6 },
   });
 
   return (
@@ -124,69 +122,66 @@ export default function LoginScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* ── Dark branding header ── */}
-          <View style={s.header}>
-            {/* KESCO banner — edge to edge */}
-            <Image source={KESCO_BANNER} style={s.kescoBanner} resizeMode="cover" />
-            {/* DTPulse product logo */}
-            <View style={s.dtpulseWrap}>
-              <Image source={DTPULSE_LOGO} style={s.dtpulseLogo} resizeMode="contain" />
-            </View>
-          </View>
-
-          {/* ── Form ── */}
-          <View style={s.body}>
-            <View style={s.card}>
-              <Text style={s.label}>Login ID</Text>
-              <View style={s.inputRow}>
-                <Ionicons name="person-outline" size={18} color={colors.mutedForeground} style={{ marginRight: 10 }} />
-                <TextInput
-                  style={s.input}
-                  value={loginId}
-                  onChangeText={setLoginId}
-                  placeholder="Login ID"
-                  autoCapitalize="none"
-                  placeholderTextColor={colors.mutedForeground}
-                />
+          <View style={s.inner}>
+            {/* ── Branding ── */}
+            <View style={s.brandSection}>
+              <Image source={KESCO_BANNER} style={s.kescoBanner} resizeMode="cover" />
+              <View style={s.dtpulseWrap}>
+                <Image source={DTPULSE_LOGO} style={s.dtpulseLogo} resizeMode="contain" />
               </View>
+            </View>
 
-              <Text style={s.label}>Password</Text>
-              <View style={s.inputRow}>
-                <Ionicons name="lock-closed-outline" size={18} color={colors.mutedForeground} style={{ marginRight: 10 }} />
-                <TextInput
-                  style={s.input}
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry={!showPw}
-                  placeholder="Password"
-                  placeholderTextColor={colors.mutedForeground}
-                />
-                <Pressable onPress={() => setShowPw(!showPw)} hitSlop={8}>
-                  <Ionicons name={showPw ? 'eye-off-outline' : 'eye-outline'} size={18} color={colors.mutedForeground} />
+            {/* ── Form (vertically centered between branding & footer) ── */}
+            <View style={s.formSection}>
+              <View style={s.card}>
+                <Text style={s.label}>Login ID</Text>
+                <View style={s.inputRow}>
+                  <Ionicons name="person-outline" size={18} color={colors.mutedForeground} style={{ marginRight: 10 }} />
+                  <TextInput
+                    style={s.input}
+                    value={loginId}
+                    onChangeText={setLoginId}
+                    placeholder="Login ID"
+                    autoCapitalize="none"
+                    placeholderTextColor={colors.mutedForeground}
+                  />
+                </View>
+
+                <Text style={s.label}>Password</Text>
+                <View style={s.inputRow}>
+                  <Ionicons name="lock-closed-outline" size={18} color={colors.mutedForeground} style={{ marginRight: 10 }} />
+                  <TextInput
+                    style={s.input}
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry={!showPw}
+                    placeholder="Password"
+                    placeholderTextColor={colors.mutedForeground}
+                  />
+                  <Pressable onPress={() => setShowPw(!showPw)} hitSlop={8}>
+                    <Ionicons name={showPw ? 'eye-off-outline' : 'eye-outline'} size={18} color={colors.mutedForeground} />
+                  </Pressable>
+                </View>
+
+                <Pressable style={s.rememberRow} onPress={() => setRememberMe(!rememberMe)}>
+                  <View style={s.checkbox}>
+                    {rememberMe && <Ionicons name="checkmark" size={13} color="#FFFFFF" />}
+                  </View>
+                  <Text style={s.rememberLabel}>Remember Me</Text>
+                </Pressable>
+
+                <Pressable
+                  style={({ pressed }) => [s.btn, { opacity: pressed || loading ? 0.8 : 1 }]}
+                  onPress={handleSignIn}
+                  disabled={loading}
+                >
+                  {loading ? <ActivityIndicator color="#FFFFFF" /> : <Text style={s.btnText}>Sign In</Text>}
                 </Pressable>
               </View>
-
-              {/* Remember Me */}
-              <Pressable style={s.rememberRow} onPress={() => setRememberMe(!rememberMe)}>
-                <View style={s.checkbox}>
-                  {rememberMe && <Ionicons name="checkmark" size={13} color="#FFFFFF" />}
-                </View>
-                <Text style={s.rememberLabel}>Remember Me</Text>
-              </Pressable>
-
-              {/* Sign In */}
-              <Pressable
-                style={({ pressed }) => [s.btn, { opacity: pressed || loading ? 0.8 : 1 }]}
-                onPress={handleSignIn}
-                disabled={loading}
-              >
-                {loading ? <ActivityIndicator color="#FFFFFF" /> : <Text style={s.btnText}>Sign In</Text>}
-              </Pressable>
+              <Text style={s.protoNote}>Prototype build — any credentials are accepted.</Text>
             </View>
 
-            <Text style={s.protoNote}>Prototype build — any credentials are accepted.</Text>
-
-            {/* Footer */}
+            {/* ── Footer ── */}
             <View style={s.footer}>
               <Text style={s.poweredLabel}>Powered by</Text>
               <Image source={PROBUS_LOGO} style={s.probusLogo} resizeMode="contain" />

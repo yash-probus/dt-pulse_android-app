@@ -2,7 +2,7 @@ import React from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather, Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, usePathname } from 'expo-router';
 import { BlurView } from 'expo-blur';
 import { useApp } from '@/context/AppContext';
 import useColors from '@/hooks/useColors';
@@ -15,9 +15,10 @@ interface AppHeaderProps {
 
 export function AppHeader({ title, back, backTo }: AppHeaderProps) {
   const colors = useColors();
-  const { theme, toggleTheme } = useApp();
+  const { theme } = useApp();
   const insets = useSafeAreaInsets();
   const isDark = theme === 'dark';
+  const pathname = usePathname();
 
   const topPad = insets.top + (Platform.OS === 'web' ? 67 : 0);
 
@@ -25,6 +26,8 @@ export function AppHeader({ title, back, backTo }: AppHeaderProps) {
     if (backTo) router.push(backTo as any);
     else if (router.canGoBack()) router.back();
   };
+
+  const isOnProfile = pathname === '/profile' || pathname === '/(tabs)/profile';
 
   return (
     <View style={[s.container, { paddingTop: topPad, backgroundColor: Platform.OS === 'ios' ? 'transparent' : colors.card, borderBottomColor: colors.border }]}>
@@ -51,13 +54,17 @@ export function AppHeader({ title, back, backTo }: AppHeaderProps) {
             <Text style={[s.title, { color: colors.foreground }]} numberOfLines={1}>{title}</Text>
           </View>
         </View>
-        <Pressable
-          onPress={toggleTheme}
-          style={({ pressed }) => [s.iconBtn, { opacity: pressed ? 0.6 : 1 }]}
-          hitSlop={8}
-        >
-          <Feather name={isDark ? 'sun' : 'moon'} size={20} color={colors.foreground} />
-        </Pressable>
+
+        {/* Profile icon — hidden when already on Profile screen */}
+        {!isOnProfile && (
+          <Pressable
+            onPress={() => router.push('/(tabs)/profile' as any)}
+            style={({ pressed }) => [s.iconBtn, { opacity: pressed ? 0.6 : 1 }]}
+            hitSlop={8}
+          >
+            <Feather name="user" size={20} color={colors.foreground} />
+          </Pressable>
+        )}
       </View>
     </View>
   );

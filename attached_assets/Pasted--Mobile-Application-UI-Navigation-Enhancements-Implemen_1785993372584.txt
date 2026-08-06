@@ -1,0 +1,202 @@
+# Mobile Application UI & Navigation Enhancements
+
+Implement the following UI and UX improvements across the mobile application. These changes are focused on improving screen utilization, navigation, and usability while keeping all existing functionality intact.
+
+---
+
+# 1. Login Screen Layout Optimization
+
+The current login screen allocates too much vertical space to the branding section, causing the login form to be pushed toward the bottom of the screen. Redesign the layout to achieve a cleaner, more balanced, and professional appearance.
+
+## Header Branding
+
+The branding should appear in the following order:
+
+1. **KESCO Branding Image** *(This is a single image that already contains the KESCO logo, the text "Kanpur Electricity Supply Company Limited", and "A Government of U.P. Undertaking". Treat this as one complete image and do not separate its contents.)*
+
+2. **DT Pulse Application Logo Image**
+
+### KESCO Branding Image
+
+- Use the provided **KESCO branding image** as a single asset.
+- Do **not** split the logo and text into separate elements.
+- Reduce the overall size of this branding image so that it occupies less vertical space than it currently does.
+- Keep it as the primary branding at the top of the login screen.
+- Maintain appropriate top margin and spacing.
+
+### DT Pulse Application Logo
+
+Place the **DT Pulse Application Logo** immediately below the KESCO branding image.
+
+- Increase its size slightly compared to the current implementation so it is clearly visible.
+- Maintain balanced spacing between the KESCO branding image and the DT Pulse logo.
+- The DT Pulse logo should clearly represent the application branding without overpowering the KESCO branding.
+
+---
+
+## Login Card Position
+
+Reposition the login card so that it sits approximately in the vertical center of the screen instead of near the bottom.
+
+The login card should contain:
+
+- Login ID
+- Password
+- Show/Hide Password (Eye icon)
+- Remember Me checkbox
+- Sign In button
+
+Maintain all existing validation and authentication functionality.
+
+---
+
+## Footer
+
+Restore the footer branding that was previously available.
+
+The footer should contain:
+
+- Powered by **Probus** logo
+- Legal
+- Contact & Support
+- Version Number (e.g. Version 1.1)
+
+The footer should remain visible at the bottom of the screen with proper spacing and should not overlap the login form.
+
+---
+
+# 2. Profile Screen Improvements
+
+## Move Profile Access
+
+Remove the **Profile** icon from the bottom navigation bar.
+
+Replace the existing **Light/Dark Mode Toggle** in the top-right corner with a **Profile** icon.
+
+When the user taps the Profile icon, it should open the existing Profile screen.
+
+The mobile application no longer requires a Light/Dark mode switch.
+
+---
+
+## Bottom Navigation
+
+After removing Profile, the bottom navigation should contain only:
+
+- Home
+- Sync
+- Logs
+
+Maintain equal spacing between the remaining navigation items.
+
+---
+
+## Logout Button Visibility
+
+Currently, the Logout button is not fully visible because it appears below the fold.
+
+Update the Profile screen layout so that:
+
+- The Logout button is always visible without excessive scrolling.
+- The screen should scroll naturally if content exceeds the viewport.
+- The final action buttons should not be clipped by the bottom safe area.
+- Respect device safe area insets for all screen sizes.
+
+---
+
+# 3. DT Analyzer Dashboard Enhancements
+
+## Add Hierarchy Filters
+
+Above the **DT Overview / Sensor Overview** segmented toggle, add three hierarchy filters.
+
+Order:
+
+- Circle
+- Division
+- Sub-Division
+
+These filters should appear on a single row, matching the desktop application's hierarchy filter style.
+
+Example:
+
+- All Circles ▼
+- All Divisions ▼
+- All Sub-Divisions ▼
+
+---
+
+## Default Values
+
+On first load:
+
+- Circle = All Circles
+- Division = All Divisions
+- Sub-Division = All Sub-Divisions
+
+---
+
+## Filter Dependency
+
+Implement cascading hierarchy selection.
+
+### Circle
+
+Selecting a Circle filters the available Divisions.
+
+### Division
+
+Selecting a Division filters the available Sub-Divisions.
+
+### Sub-Division
+
+Displays only Sub-Divisions within the selected Division.
+
+---
+
+## Dashboard Filtering
+
+Changing any hierarchy filter should update:
+
+### DT Overview
+
+- Total DTs
+- Live DTs
+- Inactive DTs
+- Under Outage
+- DT Rating Status graph
+- Active Alerts
+
+### Sensor Overview
+
+- All Sensor KPI cards
+- Sensor Status by Type graph
+- Active Alerts
+
+Only data belonging to the selected hierarchy should be displayed.
+
+---
+
+## Layout
+
+The screen order should become:
+
+- Dashboard Tabs
+- Circle / Division / Sub-Division Filters
+- DT Overview / Sensor Overview Toggle
+- Dashboard KPI Cards
+- Charts
+- Active Alerts
+
+The hierarchy filters should remain fixed directly above the DT Overview / Sensor Overview toggle and use the same visual style as the existing dropdown components.
+
+---
+
+# 4. General UI Improvements
+
+- Maintain consistent spacing throughout all updated screens.
+- Ensure responsive layouts across different mobile screen sizes.
+- Respect safe area padding for devices with display notches and gesture navigation.
+- Preserve all existing business logic and APIs.
+- These changes are UI/UX improvements only; no existing functionality should be altered unless explicitly mentioned above.
+```
