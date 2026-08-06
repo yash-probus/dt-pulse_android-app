@@ -9,8 +9,8 @@ import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useApp } from '@/context/AppContext';
 
-const KESCO_LOGO   = require('@/assets/images/kesco-logo-official.jpeg');
-const DTPULSE_LOGO = require('@/assets/images/dtpulse-logo-official.jpeg');
+const KESCO_LOGO   = require('@/assets/images/kesco-logo-v2.png');
+const DTPULSE_LOGO = require('@/assets/images/dtpulse-logo-v2.png');
 const PROBUS_LOGO  = require('@/assets/images/probus-logo.png');
 
 const SCREEN_W  = Dimensions.get('window').width;
