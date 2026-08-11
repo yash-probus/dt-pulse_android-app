@@ -8,10 +8,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useApp } from '@/context/AppContext';
+import { ProbusLogo } from '@/components/ProbusLogo';
 
 const KESCO_LOGO   = require('@/assets/images/kesco-logo-v2.png');
 const DTPULSE_LOGO = require('@/assets/images/dtpulse-logo-v2.png');
-const PROBUS_LOGO  = require('@/assets/images/probus-logo.png');
 
 const SCREEN_W  = Dimensions.get('window').width;
 const CONTENT_W = SCREEN_W - 48;           // minus 2×24 h-padding
@@ -72,29 +72,23 @@ export default function LoginScreen() {
           }}>
 
             {/* ── Logo row: KESCO | divider | DTPulse ───────────── */}
-            {/*
-              Each side is a View with explicit pixel width so text inside
-              can NEVER escape its column on Expo Web.
-              The official KESCO image already contains the company name text
-              so we intentionally omit any <Text> node here.
-            */}
             <View style={{
               flexDirection: 'row',
               alignItems: 'center',
-              height: logoRowH,
+              height: 100,
               marginBottom: 32,
               width: CONTENT_W,
             }}>
-              {/* KESCO — left half */}
+              {/* KESCO — left side (smaller) */}
               <View style={{
-                width: HALF_W,
-                height: logoRowH,
+                flex: 0.35,
+                height: 80,
                 alignItems: 'center',
                 justifyContent: 'center',
               }}>
                 <Image
                   source={KESCO_LOGO}
-                  style={{ width: KESCO_W, height: KESCO_H }}
+                  style={{ width: '100%', height: '100%' }}
                   resizeMode="contain"
                 />
               </View>
@@ -102,21 +96,21 @@ export default function LoginScreen() {
               {/* Vertical divider */}
               <View style={{
                 width: 1,
-                height: logoRowH * 0.85,
+                height: 60,
                 backgroundColor: '#D0D0D0',
                 marginHorizontal: 8,
               }} />
 
-              {/* DTPulse — right half */}
+              {/* DTPulse — right side (larger) */}
               <View style={{
-                width: HALF_W,
-                height: logoRowH,
+                flex: 0.65,
+                height: 80,
                 alignItems: 'center',
                 justifyContent: 'center',
               }}>
                 <Image
                   source={DTPULSE_LOGO}
-                  style={{ width: DTP_W, height: DTP_H }}
+                  style={{ width: '100%', height: '100%' }}
                   resizeMode="contain"
                 />
               </View>
@@ -215,7 +209,7 @@ export default function LoginScreen() {
               <Text style={{ fontSize: 12, color: '#999', fontFamily: 'Inter_400Regular', marginBottom: 6 }}>
                 Powered by
               </Text>
-              <Image source={PROBUS_LOGO} style={{ width: 100, height: 32 }} resizeMode="contain" />
+              <ProbusLogo width={150} height={41} />
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12 }}>
                 <Pressable onPress={() => Alert.alert('Legal', 'Terms and conditions apply.')}>
                   <Text style={{ fontSize: 13, color: '#6246ea', fontFamily: 'Inter_500Medium' }}>Legal</Text>

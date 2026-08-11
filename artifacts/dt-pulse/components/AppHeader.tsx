@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { router, usePathname } from 'expo-router';
 import { BlurView } from 'expo-blur';
+import Svg, { Path } from 'react-native-svg';
 import { useApp } from '@/context/AppContext';
 import useColors from '@/hooks/useColors';
 
@@ -45,12 +46,14 @@ export function AppHeader({ title, back, backTo }: AppHeaderProps) {
               <Ionicons name="arrow-back" size={22} color={colors.foreground} />
             </Pressable>
           ) : (
-            <View style={[s.logoMark, { backgroundColor: colors.primary }]}>
-              <Ionicons name="flash" size={16} color="#FFFFFF" />
+            <View style={s.logoMark}>
+              <Svg viewBox="0 0 194.02 198.13" width={24} height={24}>
+                <Path fill="#098040" fillRule="evenodd" d="M69.96,151.01C40.63,125.04,0,78.54,0,67.23,2.93,54.66,62.42,24.5,89.65,15.28,116.46,6.07,178.88-3.15,186.42,1.04c11.73,7.54,7.54,70.38,2.93,93.84-5.03,27.23-25.97,100.96-38.12,103.05-15.5,2.93-58.65-26.81-81.27-46.92h0Z" />
+              </Svg>
             </View>
           )}
           <View style={{ marginLeft: back ? 8 : 12 }}>
-            <Text style={[s.eyebrow, { color: colors.mutedForeground }]}>KESCO SUITE</Text>
+            <Text style={[s.eyebrow, { color: colors.mutedForeground }]}>DT PULSE BY PROBUS</Text>
             <Text style={[s.title, { color: colors.foreground }]} numberOfLines={1}>{title}</Text>
           </View>
         </View>

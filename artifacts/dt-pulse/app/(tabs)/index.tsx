@@ -25,7 +25,14 @@ function getGreeting() {
 }
 
 function getTime() {
-  return new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+  const d = new Date();
+  let h = d.getHours();
+  const m = d.getMinutes();
+  const ampm = h >= 12 ? 'pm' : 'am';
+  h = h % 12;
+  h = h ? h : 12; // the hour '0' should be '12'
+  const minStr = m < 10 ? '0' + m : m;
+  return `${h}:${minStr} ${ampm}`;
 }
 
 export default function DashboardScreen() {
@@ -44,17 +51,23 @@ export default function DashboardScreen() {
     greetName: { fontSize: 26, fontWeight: '700' as const, color: colors.foreground, fontFamily: 'Inter_700Bold' },
     greetRole: { fontSize: 13, color: colors.mutedForeground, fontFamily: 'Inter_400Regular', marginTop: 2 },
     settingsBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: colors.border },
-    weatherCard: { borderRadius: 16, padding: 20, marginBottom: 24, overflow: 'hidden' },
-    weatherLoc: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 8 },
-    weatherLocText: { fontSize: 12, color: 'rgba(255,255,255,0.8)', fontFamily: 'Inter_500Medium' },
-    weatherTemp: { fontSize: 48, fontWeight: '700' as const, color: '#FFFFFF', fontFamily: 'Inter_700Bold', letterSpacing: -2 },
-    weatherUnit: { fontSize: 22, color: 'rgba(255,255,255,0.9)', fontFamily: 'Inter_400Regular' },
-    weatherDesc: { fontSize: 14, color: 'rgba(255,255,255,0.85)', fontFamily: 'Inter_400Regular', marginTop: 4 },
-    weatherRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 12 },
-    weatherMeta: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-    weatherMetaText: { fontSize: 13, color: 'rgba(255,255,255,0.8)', fontFamily: 'Inter_400Regular' },
-    weatherDivider: { height: 1, backgroundColor: 'rgba(255,255,255,0.2)', marginVertical: 12 },
-    weatherTomorrow: { fontSize: 12, color: 'rgba(255,255,255,0.75)', fontFamily: 'Inter_400Regular' },
+    weatherCard: { borderRadius: 24, padding: 16, marginBottom: 20, overflow: 'hidden' },
+    weatherHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 0 },
+    weatherLocRow: { flexDirection: 'row', alignItems: 'center' },
+    weatherLocText: { fontSize: 13, color: '#FFFFFF', fontFamily: 'Inter_600SemiBold', marginLeft: 4 },
+    weatherDot: { color: 'rgba(255,255,255,0.4)', marginHorizontal: 6, fontSize: 12 },
+    weatherTimeText: { fontSize: 13, color: 'rgba(255,255,255,0.7)', fontFamily: 'Inter_400Regular' },
+    weatherMainIcon: { position: 'absolute', right: -5, top: -8 },
+    weatherMainRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12, marginTop: 4 },
+    weatherTempLarge: { fontSize: 56, fontWeight: '700' as const, color: '#FFFFFF', fontFamily: 'Inter_700Bold', letterSpacing: -2 },
+    weatherVerticalDivider: { width: 1, height: 36, backgroundColor: 'rgba(255,255,255,0.2)', marginHorizontal: 16 },
+    weatherCondition: { fontSize: 14, color: '#FFFFFF', opacity: 0.9, fontFamily: 'Inter_500Medium', lineHeight: 18 },
+    weatherHorizontalDivider: { height: 1, backgroundColor: 'rgba(255,255,255,0.1)', marginBottom: 12 },
+    weatherFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    weatherStatCol: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+    weatherStatVal: { fontSize: 14, fontWeight: '600' as const, color: '#FFFFFF', fontFamily: 'Inter_600SemiBold' },
+    weatherStatLabel: { fontSize: 10, color: 'rgba(255,255,255,0.5)', fontFamily: 'Inter_400Regular' },
+    weatherStatDivider: { width: 1, height: 24, backgroundColor: 'rgba(255,255,255,0.15)' },
     sectionHeader: { fontSize: 11, fontWeight: '600' as const, letterSpacing: 1.5, color: colors.mutedForeground, fontFamily: 'Inter_600SemiBold', marginBottom: 12, textTransform: 'uppercase' as const },
     moduleCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.card, borderRadius: 14, padding: 16, marginBottom: 10, borderWidth: 1, borderColor: colors.border, gap: 14 },
     moduleIconBox: { width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
@@ -80,32 +93,63 @@ export default function DashboardScreen() {
 
         {/* Weather Card */}
         <LinearGradient
-          colors={['#0B2545', '#1B5E85']}
+          colors={['#0D2B52', '#08162E']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={s.weatherCard}
         >
-          <View style={s.weatherLoc}>
-            <Feather name="map-pin" size={12} color="rgba(255,255,255,0.8)" />
-            <Text style={s.weatherLocText}>Kanpur, UP · {getTime()}</Text>
-          </View>
-          <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
-            <Text style={s.weatherTemp}>32</Text>
-            <Text style={[s.weatherUnit, { marginTop: 8 }]}>°C</Text>
-          </View>
-          <Text style={s.weatherDesc}>Partly cloudy</Text>
-          <View style={s.weatherRow}>
-            <View style={s.weatherMeta}>
-              <Feather name="droplet" size={13} color="rgba(255,255,255,0.8)" />
-              <Text style={s.weatherMetaText}>62%</Text>
+          <View style={s.weatherHeader}>
+            <View style={s.weatherLocRow}>
+              <Ionicons name="location-sharp" size={14} color="white" />
+              <Text style={s.weatherLocText}>Kanpur, UP</Text>
+              <Text style={s.weatherDot}>•</Text>
+              <Text style={s.weatherTimeText}>{getTime().toLowerCase()}</Text>
             </View>
-            <View style={s.weatherMeta}>
-              <Feather name="wind" size={13} color="rgba(255,255,255,0.8)" />
-              <Text style={s.weatherMetaText}>12 km/h</Text>
+            <View style={s.weatherMainIcon}>
+              <Ionicons name="partly-sunny" size={64} color="#FFD700" />
             </View>
           </View>
-          <View style={s.weatherDivider} />
-          <Text style={s.weatherTomorrow}>Tomorrow · Light rain · 29° / 24°</Text>
+
+          <View style={s.weatherMainRow}>
+            <Text style={s.weatherTempLarge}>32°</Text>
+            <View style={s.weatherVerticalDivider} />
+            <View>
+              <Text style={s.weatherCondition}>Partly</Text>
+              <Text style={s.weatherCondition}>cloudy</Text>
+            </View>
+          </View>
+
+          <View style={s.weatherHorizontalDivider} />
+
+          <View style={s.weatherFooter}>
+            <View style={s.weatherStatCol}>
+              <Ionicons name="water" size={18} color="#4FC3F7" />
+              <View>
+                <Text style={s.weatherStatVal}>62%</Text>
+                <Text style={s.weatherStatLabel}>Humidity</Text>
+              </View>
+            </View>
+
+            <View style={s.weatherStatDivider} />
+
+            <View style={s.weatherStatCol}>
+              <Feather name="wind" size={18} color="white" />
+              <View>
+                <Text style={s.weatherStatVal}>12 km/h</Text>
+                <Text style={s.weatherStatLabel}>Wind</Text>
+              </View>
+            </View>
+
+            <View style={s.weatherStatDivider} />
+
+            <View style={s.weatherStatCol}>
+              <Ionicons name="umbrella" size={18} color="#81D4FA" />
+              <View>
+                <Text style={s.weatherStatVal}>Tomorrow</Text>
+                <Text style={s.weatherStatLabel}>29° / 24°</Text>
+              </View>
+            </View>
+          </View>
         </LinearGradient>
 
         {/* Modules */}

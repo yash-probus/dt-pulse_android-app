@@ -85,7 +85,7 @@ export default function SettingsScreen() {
               <Feather name="info" size={18} color={colors.accent} />
             </View>
             <Text style={s.versionText}>App Version</Text>
-            <Text style={s.versionValue}>KESCO Suite v0.1.0</Text>
+            <Text style={s.versionValue}>DT Pulse By Probus v0.1.0</Text>
           </View>
         </View>
 
